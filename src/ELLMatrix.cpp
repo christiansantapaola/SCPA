@@ -80,6 +80,7 @@ std::ostream &operator<<(std::ostream &out, ELLMatrix const &matrix) {
                 out << row + 1 << " " << matrix.col_index[index] + 1 << " " << matrix.data[index] << std::endl;
         }
     }
+    return out;
 }
 
 void ELLMatrix::SpMV(Vector &X, Vector &Y) {

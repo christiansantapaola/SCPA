@@ -3,7 +3,7 @@ project(SparseMatrix  LANGUAGES C CXX CUDA)
 set(CMAKE_CXX_STANDARD 14)            # Enable c++14 standard
 
 # Add main.cpp file of project root directory as source file
-set(SOURCE_FILES src/main.cpp src/CSRMatrix.cpp src/COOMatrix.cpp src/SpMV_CSR.cu lib/mmio/src/mmio.c src/Vector.cpp)
+set(SOURCE_FILES src/main.cpp src/CSRMatrix.cpp src/COOMatrix.cpp src/SpMV_CSR.cu lib/mmio/src/mmio.c src/Vector.cpp src/ELLMatrix.cpp)
 set(CMAKE_BINARY_DIR bin)
 include_directories(include)
 include_directories(lib/mmio/include)
