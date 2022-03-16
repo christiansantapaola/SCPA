@@ -43,10 +43,14 @@ float *Vector::getData() {
     return data;
 }
 
-void Vector::print() {
-    std::cout << "( ";
-    for (int i = 0; i < size; i++) {
-        std::cout << data[i] << " ";
+std::ostream& operator<< (std::ostream &out, Vector const& vector) {
+    out << "{ " << std:: endl;
+    out << "size = " << vector.size << "," << std::endl;
+    out << "data = [ ";
+    for (int i = 0; i < vector.size - 1; i++) {
+        out << vector.data[i] << ", ";
     }
-    std::cout << ")" << std::endl;
+    out << vector.data[vector.size - 1] << " ]" << std::endl;
+    out << "}" << std:: endl;
+    return out;
 }

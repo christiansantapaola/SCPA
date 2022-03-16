@@ -18,8 +18,8 @@ ELLMatrix::ELLMatrix(CSRMatrix &matrix) {
         }
     }
 
-    ell_row = max_num_nz_elem;
-    ell_col = row_size;
+    ell_row = row_size;
+    ell_col = max_num_nz_elem;
     data_size = ell_row * ell_col;
 
     data = new float[data_size];
@@ -28,12 +28,18 @@ ELLMatrix::ELLMatrix(CSRMatrix &matrix) {
     memset(data, 0, data_size * sizeof(float));
     memset(col_index, 0, data_size * sizeof(int));
 
-    for (int row = 0; row < row_size; row++) {
+    for (int row = 0; row < ell_row; row++) {
         int row_start = matrix.getRowPointer()[row];
         int num_nz_elem = matrix.getRowPointer()[row + 1] - row_start;
-        for (int col = 0; col < col_size; col++) {
-            data[row * col_size + col] = (col < num_nz_elem) ? matrix.getData()[row_start + col] : 0.0f;
-            col_index[row * col_size + col] = (col < num_nz_elem) ? matrix.getColIndex()[row_start + col] : 0;
+        int padding = max_num_nz_elem - num_nz_elem;
+        int ell_row_start = row * max_num_nz_elem;
+        for (int i = 0; i < ell_col; i++) {
+            data[ell_row_start + i] = matrix.getData()[row_start + i];
+            col_index[ell_row_start + i] = matrix.getColIndex()[row_start + i];
+        }
+        for (int i = 0; i < padding; i++) {
+            data[ell_row_start + num_nz_elem + i] = 0.0f;
+            col_index[ell_row_start + num_nz_elem + i] = 0;
         }
     }
 }
@@ -72,22 +78,33 @@ int ELLMatrix::getNumNonZeroElements() {
 }
 
 std::ostream &operator<<(std::ostream &out, ELLMatrix const &matrix) {
-    out << matrix.row_size << " " << matrix.col_size << " " << matrix.num_non_zero_elements << std::endl;
-    for (int row = 0; row < matrix.ell_row; row++) {
-        for (int i = 0; i < matrix.ell_col; i++) {
-            int index = row + i * matrix.ell_col;
-            if (matrix.col_index[index] >= 0)
-                out << row + 1 << " " << matrix.col_index[index] + 1 << " " << matrix.data[index] << std::endl;
-        }
+    out << "{ " << std::endl;
+    out << "row_size = " << matrix.row_size << ", " << std::endl;
+    out << "col_size = " << matrix.col_size << ", " << std::endl;
+    out << "ell_row = " << matrix.ell_row << ", " << std::endl;
+    out << "ell_col = " << matrix.ell_col << ", " << std::endl;
+    out << "data_size = " << matrix.data_size << ", " << std::endl;
+    out << "data = [ ";
+    for (int i = 0; i < matrix.data_size - 1; i++) {
+        out << matrix.data[i] << ", ";
     }
+    out << matrix.data[matrix.data_size - 1] << " ], " << std::endl;
+    out << "col_index = [ ";
+    for (int i = 0; i < matrix.data_size - 1; i++) {
+        out << matrix.col_index[i] << ", ";
+    }
+    out << matrix.col_index[matrix.data_size - 1] << "], " << std::endl;
+    out << "}" <<std::endl;
     return out;
 }
 
 void ELLMatrix::SpMV(Vector &X, Vector &Y) {
-    for (int row = 0; row < row_size; row++) {
+    if (X.getSize() != Y.getSize()) return;
+    if (X.getSize() != row_size) return;
+    for (int row = 0; row < ell_row; row++) {
         float dot = 0.0f;
-        for (int col = 0; col < ell_col; col++) {
-            int index = row *ell_col + col;
+        for (int i = 0; i < ell_col; i++) {
+            int index = row * ell_col + i;
             dot += data[index] * X.getData()[col_index[index]];
         }
         Y.getData()[row] += dot;

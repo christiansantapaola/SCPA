@@ -31,7 +31,8 @@ public:
     int getNumNonZeroElements();
     int getRowSize();
     int getColSize();
-    void print();
+    friend std::ostream& operator<< (std::ostream &out, COOMatrix const& matrix);
+
 };
 
 #endif //SPARSEMATRIX_COOMATRIX_H

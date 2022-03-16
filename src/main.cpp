@@ -7,9 +7,9 @@
 #include "Vector.h"
 
 float TEST_MATRIX[4][4] = {3.0f, 0.0f, 1.0f, 0.0f,
-                      0.0f, 0.0f, 0.0f, 0.0f,
-                      0.0f, 2.0f, 4.0f, 1.0f,
-                      1.0f, 0.0f, 0.0f, 1.0f};
+                           0.0f, 0.0f, 0.0f, 0.0f,
+                           0.0f, 2.0f, 4.0f, 1.0f,
+                           1.0f, 0.0f, 0.0f, 1.0f};
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
         perror("fopen()");
         return 1;
     }
-    COOMatrix cooMatrix = COOMatrix(file);
+    COOMatrix cooMatrix = COOMatrix((float *)TEST_MATRIX, 4 ,4);
     if (file != stdin) {
         fclose(file);
     }
@@ -34,15 +34,21 @@ int main(int argc, char *argv[]) {
     Z.set(0.0f);
     csrMatrix.SpMV(X.getData(), Y.getData());
     ELLMatrix ellMatrix = ELLMatrix(csrMatrix);
+    std::cout << "COO Matrix" << std::endl;
+    std::cout << cooMatrix;
+    std::cout << "CSR Matrix" << std::endl;
+    std::cout << csrMatrix;
+    std::cout << "ELL Matrix" << std::endl;
+    std::cout << ellMatrix;
     ellMatrix.SpMV(X, Z);
     if (Y.equals(Z)) {
         std::cout << "SUCCESS" << std::endl;
     } else {
         std::cout << "FAIL" << std::endl;
         std::cout << "Printing result of Sequential SpMV" << std::endl;
-        Y.print();
+        std::cout << Y;
         std::cout << std::endl;
-        Z.print();
+        std::cout << Z;
         std::cout << "Printing result of Parallel SpMV" << std::endl;
     }
 

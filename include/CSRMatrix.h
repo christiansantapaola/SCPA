@@ -35,7 +35,8 @@ public:
     int getColSize();
     void SpMV(float *X, float *Y);
     void SpMV_GPU(float *X, float *Y);
-    void print();
+    void print(std::ostream &out);
+    friend std::ostream& operator<<(std::ostream &out, CSRMatrix const& matrix);
 };
 
 

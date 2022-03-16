@@ -67,13 +67,39 @@ int CSRMatrix::getColSize() {
     return col_size;
 }
 
-void CSRMatrix::print() {
-    std::cout << row_size << " " << col_size << " " << num_non_zero_elements << std::endl;
+void CSRMatrix::print(std::ostream &out) {
+    out << "row size: " << row_size << " col size: " << col_size << " non_zero_elements: " << num_non_zero_elements << std::endl;
     for (int row = 0; row < row_size; row++) {
         for (int i = row_pointer[row]; i < row_pointer[row + 1]; i++) {
-            std::cout << row + 1 << " " << col_index[i] + 1 << data[i] << std::endl;
+            out << row + 1 << ", " << col_index[i] + 1 << ", " << data[i] << std::endl;
         }
     }
+}
+
+std::ostream& operator<<(std::ostream &out, CSRMatrix const& matrix) {
+    out << "{ " << std::endl;
+    out << "row size = " << matrix.row_size << "," << std::endl;
+    out << "col size = " << matrix.col_size << "," << std::endl;
+    out << "num_non_zero_elements = " << matrix.num_non_zero_elements << "," << std::endl;
+    out << "row_pointer = [ ";
+    for (int i=0; i < matrix.row_size - 1; i++) {
+        out << matrix.row_pointer[i] << ", ";
+    }
+    out << matrix.row_pointer[matrix.row_size - 1] << " ]" << std::endl;
+
+    out << "col_index = [ ";
+    for (int i=0; i < matrix.num_non_zero_elements - 1; i++) {
+        out << matrix.col_index[i] << ", ";
+    }
+    out << matrix.col_index[matrix.num_non_zero_elements - 1] << " ]" << std::endl;
+
+    out << "data = [ ";
+    for (int i=0; i < matrix.num_non_zero_elements - 1; i++) {
+        out << matrix.data[i] << ", ";
+    }
+    out << matrix.data[matrix.num_non_zero_elements - 1] << " ]," << std::endl;
+    out << "}" << std::endl;
+    return out;
 }
 
 void CSRMatrix::SpMV(float *X, float *Y) {

@@ -115,8 +115,28 @@ int COOMatrix::getColSize() {
     return col_size;
 }
 
-void COOMatrix::print() {
-    std::cout << row_size << " " << col_size << " " << num_non_zero_elements << std::endl;
-    for (int i=0; i< num_non_zero_elements; i++)
-        std::cout << row_index[i] + 1 << " " << col_index[i] + 1 << " " << data[i] << std::endl;
+std::ostream& operator<< (std::ostream &out, COOMatrix const& matrix) {
+    out << "{ " << std::endl;
+    out << "row size = " << matrix.row_size << "," << std::endl;
+    out << "col size = " << matrix.col_size << "," << std::endl;
+    out << "num_non_zero_elements = " << matrix.num_non_zero_elements << "," << std::endl;
+    out << "row_index = [ ";
+    for (int i=0; i < matrix.num_non_zero_elements - 1; i++) {
+        out << matrix.row_index[i] << ", ";
+    }
+    out << matrix.row_index[matrix.num_non_zero_elements - 1] << " ]" << std::endl;
+
+    out << "col_index = [ ";
+    for (int i=0; i < matrix.num_non_zero_elements - 1; i++) {
+        out << matrix.col_index[i] << ", ";
+    }
+    out << matrix.col_index[matrix.num_non_zero_elements - 1] << " ]" << std::endl;
+
+    out << "data = [ ";
+    for (int i=0; i < matrix.num_non_zero_elements - 1; i++) {
+        out << matrix.data[i] << ", ";
+    }
+    out << matrix.data[matrix.num_non_zero_elements - 1] << " ]," << std::endl;
+    out << "}" << std::endl;
+    return out;
 }

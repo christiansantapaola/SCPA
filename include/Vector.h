@@ -14,12 +14,12 @@ private:
     unsigned int size;
 
 public:
-    Vector(unsigned int size);
+    explicit Vector(unsigned int size);
     ~Vector();
     void set(float value);
     unsigned int getSize();
     float *getData();
-    void print();
+    friend std::ostream& operator<< (std::ostream &out, Vector const& matrix);
     bool equals(const Vector &v);
 };
 
