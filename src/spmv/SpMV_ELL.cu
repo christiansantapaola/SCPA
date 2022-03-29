@@ -40,6 +40,8 @@ SpMVResult ELLMatrix::SpMV_GPU(Vector &X, Vector &Y) {
     }
 
     BlockGridInfo blockGridInfo = deviceInfo.getBlockSize(row_size);
+    result.gridSize = blockGridInfo.gridSize;
+    result.blockSize = blockGridInfo.blockSize;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     cudaEventCreate(&instart);
