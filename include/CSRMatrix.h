@@ -5,12 +5,13 @@
 #ifndef SPARSEMATRIX_CSRMATRIX_H
 #define SPARSEMATRIX_CSRMATRIX_H
 
-#include <stdio.h>
 #include <iostream>
 #include <cstring>
+#include <chrono>
 
 #include "COOMatrix.h"
-
+#include "Vector.h"
+#include "SpMVResult.h"
 
 extern "C" {
 #include "mmio.h"
@@ -25,18 +26,18 @@ private:
     int row_size;
     int col_size;
 public:
+    CSRMatrix() = default;
     CSRMatrix(COOMatrix &matrix);
     ~CSRMatrix();
-    float *getData();
-    int *getColIndex();
-    int *getRowPointer();
-    int getNumNonZeroElements();
-    int getRowSize();
-    int getColSize();
-    void SpMV(float *X, float *Y);
-    void SpMV_GPU(float *X, float *Y);
-    void print(std::ostream &out);
+    float *getData() const;
+    int *getColIndex() const;
+    int *getRowPointer() const;
+    int getNumNonZeroElements() const;
+    int getRowSize() const;
+    int getColSize() const;
     friend std::ostream& operator<<(std::ostream &out, CSRMatrix const& matrix);
+    SpMVResult SpMV_CPU(Vector &X, Vector &Y);
+    SpMVResult SpMV_GPU(Vector &X, Vector &Y);
 };
 
 

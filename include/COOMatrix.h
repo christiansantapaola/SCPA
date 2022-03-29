@@ -5,13 +5,18 @@
 #ifndef SPARSEMATRIX_COOMATRIX_H
 #define SPARSEMATRIX_COOMATRIX_H
 
-#include <stdio.h>
 #include <iostream>
-#include <math.h>
+#include <cmath>
+#include <cstring>
+#include <algorithm>
+
 
 extern "C" {
 #include "mmio.h"
 };
+
+#include "SwapMap.h"
+#include "Histogram.h"
 
 class COOMatrix {
 private:
@@ -22,15 +27,19 @@ private:
     int col_size;
     int num_non_zero_elements;
 public:
-    COOMatrix(float *Matrix, int rows, int cols);
+    COOMatrix() = default;
+    COOMatrix(const float *Matrix, int rows, int cols);
     COOMatrix(FILE *f);
     ~COOMatrix();
     float *getData();
     int *getColIndex();
     int *getRowIndex();
-    int getNumNonZeroElements();
-    int getRowSize();
-    int getColSize();
+    int getNumNonZeroElements() const;
+    int getRowSize() const;
+    int getColSize() const;
+    SwapMap getRowSwapMap();
+    void swapRow(SwapMap& rowSwapMap);
+    void swapRowInverse(SwapMap& rowSwapMap);
     friend std::ostream& operator<< (std::ostream &out, COOMatrix const& matrix);
 
 };

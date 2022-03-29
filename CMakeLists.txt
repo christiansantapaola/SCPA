@@ -1,14 +1,77 @@
 cmake_minimum_required(VERSION 3.13)
 project(SparseMatrix  LANGUAGES C CXX CUDA)
-set(CMAKE_CXX_STANDARD 14)            # Enable c++14 standard
-
-# Add main.cpp file of project root directory as source file
-set(SOURCE_FILES src/main.cpp src/CSRMatrix.cpp src/COOMatrix.cpp src/SpMV_CSR.cu lib/mmio/src/mmio.c src/Vector.cpp src/ELLMatrix.cpp)
+# find package
+find_package(CUDA 11.0 REQUIRED)
 set(CMAKE_BINARY_DIR bin)
 include_directories(include)
 include_directories(lib/mmio/include)
+
 link_directories(lib)
 
-# Add executable target with source files listed in SOURCE_FILES variable
-add_executable(SparseMatrixExec ${SOURCE_FILES})
+# set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
+# Add executable target with source files listed in SOURCE_FILES variable
+add_executable(ellMatrixSpMV
+        src/ellmatrixMain.cpp
+        src/sparsematrix/CSRMatrix.cpp
+        src/sparsematrix/COOMatrix.cpp
+        src/spmv/SpMV_CSR.cu
+        lib/mmio/src/mmio.c
+        src/sparsematrix/Vector.cpp
+        src/sparsematrix/ELLMatrix.cpp
+        src/util/SwapMap.cpp
+        src/util/Histogram.cpp
+        src/util/cudaUtils.cu
+        src/spmv/SpMV_ELL.cu
+        src/spmv/SpMVResult.cpp)
+target_link_libraries(ellMatrixSpMV ${CUDA_LIBRARIES})
+
+add_executable(csrMatrixSpMV
+        src/csrMatrixMain.cpp
+        src/sparsematrix/CSRMatrix.cpp
+        src/sparsematrix/COOMatrix.cpp
+        src/spmv/SpMV_CSR.cu
+        lib/mmio/src/mmio.c
+        src/sparsematrix/Vector.cpp
+        src/sparsematrix/ELLMatrix.cpp
+        src/util/SwapMap.cpp
+        src/util/Histogram.cpp
+        src/util/cudaUtils.cu
+        src/spmv/SpMV_ELL.cu
+        src/spmv/SpMVResult.cpp)
+
+target_link_libraries(csrMatrixSpMV ${CUDA_LIBRARIES})
+
+add_executable(readCSR
+        src/readCSRMatrix.cpp
+        src/sparsematrix/CSRMatrix.cpp
+        src/sparsematrix/COOMatrix.cpp
+        src/spmv/SpMV_CSR.cu
+        lib/mmio/src/mmio.c
+        src/sparsematrix/Vector.cpp
+        src/sparsematrix/ELLMatrix.cpp
+        src/util/SwapMap.cpp
+        src/util/Histogram.cpp
+        src/util/cudaUtils.cu
+        src/spmv/SpMV_ELL.cu
+        src/spmv/SpMVResult.cpp
+        )
+
+target_link_libraries(csrMatrixSpMV ${CUDA_LIBRARIES})
+
+add_executable(readELL
+        src/readELLMatrix.cpp
+        src/sparsematrix/CSRMatrix.cpp
+        src/sparsematrix/COOMatrix.cpp
+        src/spmv/SpMV_CSR.cu
+        lib/mmio/src/mmio.c
+        src/sparsematrix/Vector.cpp
+        src/sparsematrix/ELLMatrix.cpp
+        src/util/SwapMap.cpp
+        src/util/Histogram.cpp
+        src/util/cudaUtils.cu
+        src/spmv/SpMV_ELL.cu
+        src/spmv/SpMVResult.cpp
+        )
+
+target_link_libraries(csrMatrixSpMV ${CUDA_LIBRARIES})

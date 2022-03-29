@@ -6,7 +6,9 @@
 #define SPARSEMATRIX_VECTOR_H
 #include <iostream>
 
-#include <math.h>
+#include <cmath>
+
+#include "SwapMap.h"
 
 class Vector {
 private:
@@ -21,6 +23,8 @@ public:
     float *getData();
     friend std::ostream& operator<< (std::ostream &out, Vector const& matrix);
     bool equals(const Vector &v);
+    void swap(SwapMap& swapMap);
+    void swapInverse(SwapMap& swapMap);
 };
 
 
