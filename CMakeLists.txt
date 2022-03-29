@@ -11,7 +11,7 @@ link_directories(lib)
 # set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
 # Add executable target with source files listed in SOURCE_FILES variable
-add_executable(ellMatrixSpMV
+add_executable(spmvELL
         src/ellmatrixMain.cpp
         src/sparsematrix/CSRMatrix.cpp
         src/sparsematrix/COOMatrix.cpp
@@ -24,9 +24,9 @@ add_executable(ellMatrixSpMV
         src/util/cudaUtils.cu
         src/spmv/SpMV_ELL.cu
         src/spmv/SpMVResult.cpp)
-target_link_libraries(ellMatrixSpMV ${CUDA_LIBRARIES})
+target_link_libraries(spmvELL ${CUDA_LIBRARIES})
 
-add_executable(csrMatrixSpMV
+add_executable(spmvCSR
         src/csrMatrixMain.cpp
         src/sparsematrix/CSRMatrix.cpp
         src/sparsematrix/COOMatrix.cpp
@@ -40,7 +40,7 @@ add_executable(csrMatrixSpMV
         src/spmv/SpMV_ELL.cu
         src/spmv/SpMVResult.cpp)
 
-target_link_libraries(csrMatrixSpMV ${CUDA_LIBRARIES})
+target_link_libraries(spmvCSR ${CUDA_LIBRARIES})
 
 add_executable(readCSR
         src/readCSRMatrix.cpp
@@ -57,7 +57,7 @@ add_executable(readCSR
         src/spmv/SpMVResult.cpp
         )
 
-target_link_libraries(csrMatrixSpMV ${CUDA_LIBRARIES})
+target_link_libraries(readCSR ${CUDA_LIBRARIES})
 
 add_executable(readELL
         src/readELLMatrix.cpp
@@ -74,4 +74,4 @@ add_executable(readELL
         src/spmv/SpMVResult.cpp
         )
 
-target_link_libraries(csrMatrixSpMV ${CUDA_LIBRARIES})
+target_link_libraries(readELL ${CUDA_LIBRARIES})

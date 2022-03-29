@@ -35,18 +35,23 @@ int main(int argc, char *argv[]) {
     X.set(1.0);
     Y.set(0.0f);
     Z.set(0.0f);
-    SpMVResult result1 = ellMatrix.SpMV_GPU(X, Y);
-    SpMVResult result2 = ellMatrix.SpMV_CPU(X, Z);
+    SpMVResult gpuResult = ellMatrix.SpMV_GPU(X, Y);
+    SpMVResult cpuResult = ellMatrix.SpMV_CPU(X, Z);
     if (Y.equals(Z)) {
         std::cout << "{" << std::endl;
-        std::cout << "GPU_Result: " << std::endl << result1 << ","<< std::endl;
-        std::cout << "CPU_Result: " << result2 << std::endl;
+        std::cout << "\"success\": true," << std::endl;
+        std::cout << "\"GPU_Result\":" << gpuResult << ","<< std::endl;
+        std::cout << "\"CPU_Result\":" <<  cpuResult << std::endl;
         std::cout << "}" << std::endl;
     } else {
-        std::cout << "Y = " << Y;
-        std::cout << "GPU Result = "<< result1 << std::endl;
-        std::cout << "Z = " << Z;
-        std::cout << "CPU Result = "<< result2 << std::endl;
+        std::cout << "{" << std::endl;
+        std::cout << "\"success\": false," << std::endl;
+        std::cout << "\"Y\": " << Y << ","<< std::endl;
+        std::cout << "\"GPU_Result\": " << gpuResult << ","<< std::endl;
+        std::cout << "\"Z\":" << Z << ","<< std::endl;
+        std::cout << "\"CPU_Result\":" << cpuResult << std::endl;
+        std::cout << "}" << std::endl;
+        exit(EXIT_FAILURE);
     }
 
 
