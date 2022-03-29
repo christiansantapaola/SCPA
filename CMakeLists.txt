@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.18)
 project(SparseMatrix  LANGUAGES C CXX CUDA)
 # find package
 find_package(CUDA 11.0 REQUIRED)
@@ -9,7 +9,7 @@ include_directories(lib/mmio/include)
 link_directories(lib)
 
 # set(CMAKE_VERBOSE_MAKEFILE TRUE)
-set(CMAKE_CUDA_ARCHITECTURES native)
+set(CMAKE_CUDA_ARCHITECTURES 52 75)
 
 # Add executable target with source files listed in SOURCE_FILES variable
 add_executable(spmvELL

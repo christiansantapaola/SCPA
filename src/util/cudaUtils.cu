@@ -96,7 +96,6 @@ struct BlockGridInfo CudaDeviceInfo::getBlockSize(int NumRows) {
     }
     BlockGridInfo gridInfo = infos[index];
     delete[] infos;
-    printf("%s blocksize=%zu, gridsize=%zu\n", "CUDA:", gridInfo.blockSize, gridInfo.gridSize);
     return gridInfo;
 }
 

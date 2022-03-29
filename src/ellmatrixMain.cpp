@@ -40,12 +40,18 @@ int main(int argc, char *argv[]) {
     if (Y.equals(Z)) {
         std::cout << "{" << std::endl;
         std::cout << "\"success\": true," << std::endl;
+        std::cout << "\"rows\":" << ellMatrix.getRowSize() << "," << std::endl;
+        std::cout << "\"cols\":" << ellMatrix.getColSize() << "," << std::endl;
+        std::cout << "\"num_non_zero_elements\":" << ellMatrix.getNumNonZeroElements()  << "," << std::endl;
         std::cout << "\"GPU_Result\":" << gpuResult << ","<< std::endl;
         std::cout << "\"CPU_Result\":" <<  cpuResult << std::endl;
         std::cout << "}" << std::endl;
     } else {
         std::cout << "{" << std::endl;
         std::cout << "\"success\": false," << std::endl;
+        std::cout << "\"rows\":" << ellMatrix.getRowSize() << "," << std::endl;
+        std::cout << "\"cols\":" << ellMatrix.getColSize() << "," << std::endl;
+        std::cout << "\"num_non_zero_elements\":" << ellMatrix.getNumNonZeroElements()  << "," << std::endl;
         std::cout << "\"Y\": " << Y << ","<< std::endl;
         std::cout << "\"GPU_Result\": " << gpuResult << ","<< std::endl;
         std::cout << "\"Z\":" << Z << ","<< std::endl;

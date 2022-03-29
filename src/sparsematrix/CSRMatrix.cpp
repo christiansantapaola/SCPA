@@ -120,13 +120,13 @@ std::ostream& operator<<(std::ostream &out, CSRMatrix const& matrix) {
     for (int i=0; i < matrix.row_size - 1; i++) {
         out << matrix.row_pointer[i] << ", ";
     }
-    out << matrix.row_pointer[matrix.row_size - 1] << " ]" << std::endl;
+    out << matrix.row_pointer[matrix.row_size - 1] << " ]," << std::endl;
 
     out << "\"col_index\": [ ";
     for (int i=0; i < matrix.num_non_zero_elements - 1; i++) {
         out << matrix.col_index[i] << ", ";
     }
-    out << matrix.col_index[matrix.num_non_zero_elements - 1] << " ]" << std::endl;
+    out << matrix.col_index[matrix.num_non_zero_elements - 1] << " ]," << std::endl;
 
     out << "\"data\": [ ";
     for (int i=0; i < matrix.num_non_zero_elements - 1; i++) {
@@ -154,7 +154,8 @@ SpMVResult CSRMatrix::SpMV_CPU(Vector &X, Vector &Y) {
     }
     auto t1 =  std::chrono::high_resolution_clock::now();
     result.success = true;
-    result.CPUFunctionExecutionTime = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
+    std::chrono::duration<float> cputime = t1 - t0;
+    result.CPUFunctionExecutionTime = cputime.count() * 1000;
     return result;
 }
 

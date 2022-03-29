@@ -121,6 +121,7 @@ SpMVResult ELLMatrix::SpMV_CPU(Vector &X, Vector &Y) {
     }
     auto t1 = std::chrono::high_resolution_clock::now();
     result.success = true;
-    result.CPUFunctionExecutionTime = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
+    std::chrono::duration<float> cputime = t1 - t0;
+    result.CPUFunctionExecutionTime = cputime.count() * 1000;
     return result;
 }

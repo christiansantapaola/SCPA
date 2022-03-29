@@ -33,10 +33,12 @@ SpMVResult ELLMatrix::SpMV_GPU(Vector &X, Vector &Y) {
     deviceInfo.setDevice(deviceInfo.getBestDevice());
     size_t memory_used = X.getSize() * sizeof(float)  + Y.getSize() * sizeof(float) + data_size * sizeof(float) + data_size * sizeof(int);
     size_t memory_available = deviceInfo.getDeviceProp(deviceInfo.dev)->totalGlobalMem;
-    printf("mem: %zu/%zu\n", memory_used, memory_available);
+    result.GPUtotalGlobMemory = memory_available;
+    result.GPUusedGlobalMemory = memory_used;
     if ( memory_used >= memory_available) {
         return result;
     }
+
     BlockGridInfo blockGridInfo = deviceInfo.getBlockSize(row_size);
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
@@ -60,7 +62,9 @@ SpMVResult ELLMatrix::SpMV_GPU(Vector &X, Vector &Y) {
     cudaEventRecord(instop);
     cudaEventRecord(start);
     SpMV_ELL<<<blockGridInfo.gridSize, blockGridInfo.blockSize>>>(row_size, d_data, d_col_index, num_elem, d_x, d_y);
+    checkCudaErrors(cudaDeviceSynchronize());
     cudaEventRecord(stop);
+    checkCudaErrors(cudaPeekAtLastError());
     cudaEventRecord(outstart);
     checkCudaErrors(cudaMemcpy(Y.getData(), d_y, Y.getSize() * sizeof(float), cudaMemcpyDeviceToHost));
     checkCudaErrors(cudaFree(d_x));
@@ -75,7 +79,8 @@ SpMVResult ELLMatrix::SpMV_GPU(Vector &X, Vector &Y) {
     cudaEventElapsedTime(&result.GPUInputOnDeviceTime, instart, instop);
     cudaEventSynchronize(outstop);
     cudaEventElapsedTime(&result.GPUOutputFromDeviceTime, outstart, outstop);
-    result.CPUFunctionExecutionTime = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
+    std::chrono::duration<float> cputime = t1 - t0;
+    result.CPUFunctionExecutionTime = cputime.count() * 1000;
     result.success = true;
     return result;
 }

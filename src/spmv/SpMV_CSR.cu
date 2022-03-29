@@ -52,7 +52,6 @@ SpMVResult CSRMatrix::SpMV_GPU(Vector &X, Vector &Y) {
     CudaDeviceInfo deviceInfo = CudaDeviceInfo();
     deviceInfo.setDevice(deviceInfo.getBestDevice());
     BlockGridInfo blockGridInfo = deviceInfo.getBlockSize(row_size);
-    printf("CSR: %zu %zu\n", blockGridInfo.blockSize, blockGridInfo.gridSize);
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     cudaEventCreate(&instart);
@@ -84,6 +83,7 @@ SpMVResult CSRMatrix::SpMV_GPU(Vector &X, Vector &Y) {
                                 d_row_ptr,
                                 d_x,
                                 d_y);
+    checkCudaErrors(cudaDeviceSynchronize());
     cudaEventRecord(stop);
 
     cudaEventRecord(outstart);
@@ -94,7 +94,7 @@ SpMVResult CSRMatrix::SpMV_GPU(Vector &X, Vector &Y) {
     checkCudaErrors(cudaFree(d_row_ptr));
     checkCudaErrors(cudaFree(d_x));
     checkCudaErrors(cudaFree(d_y));
-    cudaEventSynchronize(outstop);
+    cudaEventRecord(outstop);
     auto t1 = std::chrono::high_resolution_clock::now();
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&result.GPUKernelExecutionTime, start, stop);
@@ -102,7 +102,8 @@ SpMVResult CSRMatrix::SpMV_GPU(Vector &X, Vector &Y) {
     cudaEventElapsedTime(&result.GPUInputOnDeviceTime, instart, instop);
     cudaEventSynchronize(outstop);
     cudaEventElapsedTime(&result.GPUOutputFromDeviceTime, outstart, outstop);
-    result.CPUFunctionExecutionTime = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
+    std::chrono::duration<float> cputime = t1 - t0;
+    result.CPUFunctionExecutionTime = cputime.count() * 1000;
     result.success = true;
     return result;
 }

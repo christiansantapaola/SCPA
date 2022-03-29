@@ -13,7 +13,13 @@ struct SpMVResult {
     float GPUInputOnDeviceTime;
     float GPUKernelExecutionTime;
     float GPUOutputFromDeviceTime;
-    int64_t CPUFunctionExecutionTime;
+    int gridSize;
+    int blockSize;
+    int wastedThread;
+    size_t GPUtotalGlobMemory;
+    size_t GPUusedGlobalMemory;
+    float CPUFunctionExecutionTime;
+
 
     friend std::ostream& operator<<(std::ostream& out, SpMVResult& result);
 };

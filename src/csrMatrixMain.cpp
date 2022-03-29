@@ -34,9 +34,6 @@ int main(int argc, char *argv[]) {
         fclose(file);
     }
     CSRMatrix csrMatrix = CSRMatrix(cooMatrix);
-    std::cout << "rows=" << csrMatrix.getRowSize() << std::endl;
-    std::cout << "cols=" << csrMatrix.getColSize() << std::endl;
-    std::cout << "nz=" << csrMatrix.getNumNonZeroElements() << std::endl;
     Vector X = Vector(cooMatrix.getColSize());
     Vector Y = Vector(cooMatrix.getRowSize());
     Vector Z = Vector(cooMatrix.getRowSize());
@@ -48,6 +45,9 @@ int main(int argc, char *argv[]) {
     if (Y.equals(Z)) {
         std::cout << "{" << std::endl;
         std::cout << "\"success\": true," << std::endl;
+        std::cout << "\"rows\":" << csrMatrix.getRowSize() << "," << std::endl;
+        std::cout << "\"cols\":" << csrMatrix.getColSize() << "," << std::endl;
+        std::cout << "\"num_non_zero_elements\":" << csrMatrix.getNumNonZeroElements()  << "," << std::endl;
         std::cout << "\"GPU_Result\":" << gpuResult << ","<< std::endl;
         std::cout << "\"CPU_Result\":" <<  cpuResult << std::endl;
         std::cout << "}" << std::endl;
