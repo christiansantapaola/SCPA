@@ -9,6 +9,7 @@ include_directories(lib/mmio/include)
 link_directories(lib)
 
 # set(CMAKE_VERBOSE_MAKEFILE TRUE)
+set(CMAKE_CUDA_ARCHITECTURES native)
 
 # Add executable target with source files listed in SOURCE_FILES variable
 add_executable(spmvELL
@@ -39,6 +40,7 @@ add_executable(spmvCSR
         src/util/cudaUtils.cu
         src/spmv/SpMV_ELL.cu
         src/spmv/SpMVResult.cpp)
+
 
 target_link_libraries(spmvCSR ${CUDA_LIBRARIES})
 
@@ -73,5 +75,4 @@ add_executable(readELL
         src/spmv/SpMV_ELL.cu
         src/spmv/SpMVResult.cpp
         )
-
 target_link_libraries(readELL ${CUDA_LIBRARIES})
