@@ -8,6 +8,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cstdio>
+#include "BlockGridInfo.h"
 
 #define checkCudaErrors(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
@@ -28,26 +29,15 @@ struct CudaDeviceInfo {
 
     CudaDeviceInfo();
     ~CudaDeviceInfo();
-    void setDevice(int dev);
-    cudaDeviceProp *getDeviceProp(int dev);
-    int getBestDevice();
-    bool doesItFitInGlobalMemory(size_t size);
-    bool doesItFitInSharedMemory(size_t size);
-    bool doesItFitInCostantMemory(size_t size);
-    struct BlockGridInfo getBlockSize(int NumRows);
+    void setDevice(int device);
+    cudaDeviceProp *getDeviceProp(int device) const;
+    int getBestDevice() const;
+    bool doesItFitInGlobalMemory(size_t size) const;
+    bool doesItFitInSharedMemory(size_t size) const;
+    bool doesItFitInCostantMemory(size_t size) const;
+    struct BlockGridInfo getBlockSize(int NumRows) const;
 };
 
-struct BlockGridInfo {
-    size_t blockSize;
-    size_t gridSize;
-    float utilization;
-    int wastedThread;
-    unsigned long numBlockToFillSM;
-    int maxThreadPerBlock;
-    int maxThreadPerSM;
-    size_t maxBlockSizePerSM;
-    int MaxBlockPerSM;
-};
 
 
 

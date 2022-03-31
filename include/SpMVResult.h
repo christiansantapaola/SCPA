@@ -5,17 +5,14 @@
 #ifndef SPARSEMATRIX_SPMVRESULT_H
 #define SPARSEMATRIX_SPMVRESULT_H
 #include <ostream>
-#include <inttypes.h>
-
+#include "BlockGridInfo.h"
 
 struct SpMVResult {
     bool success;
     float GPUInputOnDeviceTime;
     float GPUKernelExecutionTime;
     float GPUOutputFromDeviceTime;
-    int gridSize;
-    int blockSize;
-    int wastedThread;
+    BlockGridInfo blockGridInfo;
     size_t GPUtotalGlobMemory;
     size_t GPUusedGlobalMemory;
     float CPUFunctionExecutionTime;

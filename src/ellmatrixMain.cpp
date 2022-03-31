@@ -12,10 +12,11 @@ float TEST_MATRIX[4][4] = {11.0f, 12.0f, 0.0f, 0.0f,
                            0.0f, 0.0f, 33.0f, 0.0f,
                            0.0f, 0.0f, 43.0f, 44.0f};
 
+const char *PROGRAM_NAME = "spmvELL";
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
-        std::cout << "USAGE: SparseMatrixExec file.mtx" << std::endl;
+        std::cout << "USAGE: " << PROGRAM_NAME <<" file.mtx" << std::endl;
         return 1;
     }
     FILE *file = fopen(argv[1], "r");

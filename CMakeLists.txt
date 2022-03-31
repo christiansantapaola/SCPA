@@ -26,6 +26,7 @@ add_executable(spmvELL
         src/spmv/SpMV_ELL.cu
         src/spmv/SpMVResult.cpp)
 target_link_libraries(spmvELL ${CUDA_LIBRARIES})
+set_target_properties(spmvELL PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 add_executable(spmvCSR
         src/csrMatrixMain.cpp
@@ -43,6 +44,7 @@ add_executable(spmvCSR
 
 
 target_link_libraries(spmvCSR ${CUDA_LIBRARIES})
+set_target_properties(spmvCSR PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 add_executable(readCSR
         src/readCSRMatrix.cpp
@@ -60,6 +62,7 @@ add_executable(readCSR
         )
 
 target_link_libraries(readCSR ${CUDA_LIBRARIES})
+set_target_properties(readCSR PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 add_executable(readELL
         src/readELLMatrix.cpp
@@ -76,3 +79,4 @@ add_executable(readELL
         src/spmv/SpMVResult.cpp
         )
 target_link_libraries(readELL ${CUDA_LIBRARIES})
+set_target_properties(readELL PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
