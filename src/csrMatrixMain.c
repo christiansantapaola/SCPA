@@ -51,6 +51,11 @@ int main(int argc, char *argv[]) {
     fprintf(stdout, "\"GPUresult\": ");
     SpMVResult_outAsJSON(&gpuResult, stdout);
     fprintf(stdout, "\n}\n");
+    Vector_free(Z);
+    Vector_free(Y);
+    Vector_free(X);
+    CSRMatrix_free(csrMatrix);
+    COOMatrix_free(cooMatrix);
     return EXIT_SUCCESS;
 
 

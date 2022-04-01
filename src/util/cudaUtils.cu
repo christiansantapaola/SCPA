@@ -75,4 +75,5 @@ void CudaUtils_getBestCudaParameters(unsigned int numRows, cudaDeviceProp *prop,
     }
 
     *bestParams = infos[index];
+    free(infos);
 }

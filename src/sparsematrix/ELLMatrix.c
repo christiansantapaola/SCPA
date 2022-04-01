@@ -76,22 +76,25 @@ void ELLMatrix_free(ELLMatrix *ellMatrix) {
 }
 
 
-void ELLMatrix_outAsJSON(ELLMatrix *ellMatrix, FILE *out) {
-    if (!ellMatrix || !out) return;
+void ELLMatrix_outAsJSON(ELLMatrix *matrix, FILE *out) {
+    if (!out) out=stdout;
+    if (!matrix) {
+        fprintf(out, "{}");
+    }
     fprintf(out, "%s\n", "{ ");
-    fprintf(out, "%s: %d,\n", "\"row size\"",  ellMatrix->row_size);
-    fprintf(out, "%s: %d,\n", "\"col size\"",  ellMatrix->col_size);
-    fprintf(out, "%s: %d,\n", "\"num_non_zero_elements\"",  ellMatrix->num_non_zero_elements);
+    fprintf(out, "%s: %d,\n", "\"row size\"", matrix->row_size);
+    fprintf(out, "%s: %d,\n", "\"col size\"", matrix->col_size);
+    fprintf(out, "%s: %d,\n", "\"num_non_zero_elements\"", matrix->num_non_zero_elements);
     fprintf(out, "%s: [ ", "\"col_index\"");
-    for (int i=0; i < ellMatrix->num_non_zero_elements - 1; i++) {
-        fprintf(out, "%d, ", ellMatrix->col_index[i]);
+    for (int i=0; i < matrix->num_non_zero_elements - 1; i++) {
+        fprintf(out, "%d, ", matrix->col_index[i]);
     }
-    fprintf(out, "%d ],\n", ellMatrix->col_index[ellMatrix->num_non_zero_elements - 1]);
+    fprintf(out, "%d ],\n", matrix->col_index[matrix->num_non_zero_elements - 1]);
     fprintf(out, "%s: [ ", "\"data\"");
-    for (int i=0; i < ellMatrix->num_non_zero_elements - 1; i++) {
-        fprintf(out, "%f, ", ellMatrix->data[i]);
+    for (int i=0; i < matrix->num_non_zero_elements - 1; i++) {
+        fprintf(out, "%f, ", matrix->data[i]);
     }
-    fprintf(out, "%f ]\n", ellMatrix->data[ellMatrix->num_non_zero_elements - 1]);
+    fprintf(out, "%f ]\n", matrix->data[matrix->num_non_zero_elements - 1]);
     fprintf(out, "%s", "}");
 }
 

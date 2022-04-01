@@ -97,7 +97,10 @@ void CSRMatrix_free(CSRMatrix *matrix) {
 }
 
 void CSRMatrix_outAsJSON(CSRMatrix *matrix, FILE *out) {
-    if (!matrix || !out) return;
+    if (!out) out=stdout;
+    if (!matrix) {
+        fprintf(out, "{}");
+    }
     fprintf(out, "%s\n", "{ ");
     fprintf(out, "%s: %d,\n", "\"row size\"",  matrix->row_size);
     fprintf(out, "%s: %d,\n", "\"col size\"",  matrix->col_size);

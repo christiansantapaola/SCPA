@@ -22,7 +22,7 @@ typedef struct ELLMatrix {
 
 ELLMatrix *ELLMatrix_new(CSRMatrix *csrMatrix);
 void ELLMatrix_free(ELLMatrix *ellMatrix);
-void ELLMatrix_outAsJSON(ELLMatrix *ellMatrix, FILE *out);
+void ELLMatrix_outAsJSON(ELLMatrix *matrix, FILE *out);
 
 
 

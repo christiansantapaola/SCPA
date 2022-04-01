@@ -142,7 +142,10 @@ void COOMatrix_free(COOMatrix *matrix) {
 }
 
 void COOMatrix_outAsJSON(COOMatrix *matrix, FILE *out) {
-    if (!matrix || !out) return;
+    if (!out) out=stdout;
+    if (!matrix) {
+        fprintf(out, "{}");
+    }
     fprintf(out, "%s\n", "{ ");
     fprintf(out, "%s: %d,\n", "\"row size\"",  matrix->row_size);
     fprintf(out, "%s: %d,\n", "\"col size\"",  matrix->col_size);

@@ -42,7 +42,10 @@ void Vector_set(Vector *vector, float value) {
 }
 
 void Vector_outAsJSON(Vector *vector, FILE *out) {
-    if (!vector || !out) return;
+    if (!out) out = stdout;
+    if (!vector) {
+        fprintf(out, "{}");
+    }
     fprintf(out, "%s\n", "{ ");
     fprintf(out, "%s: %d,\n", "\"size\"",  vector->size);
     fprintf(out, "%s: [ ", "\"data\"");
