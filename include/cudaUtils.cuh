@@ -7,8 +7,10 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include <cstdio>
+extern "C" {
+#include <stdlib.h>
 #include "BlockGridInfo.h"
+};
 
 #define checkCudaErrors(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
@@ -20,23 +22,12 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
     }
 }
 
-struct CudaDeviceInfo {
-    int numDevice;
-    cudaDeviceProp *devices;
-    int dev;
-    int driverVersion;
-    int runtimeVersion;
+void CudaUtils_setDevice(int device);
+void CudaUtils_getDeviceProp(int device, cudaDeviceProp *prop);
+int CudaUtils_getBestDevice();
+void CudaUtils_getBestCudaParameters(unsigned int numRows, cudaDeviceProp *prop, BlockGridInfo *bestParams);
 
-    CudaDeviceInfo();
-    ~CudaDeviceInfo();
-    void setDevice(int device);
-    cudaDeviceProp *getDeviceProp(int device) const;
-    int getBestDevice() const;
-    bool doesItFitInGlobalMemory(size_t size) const;
-    bool doesItFitInSharedMemory(size_t size) const;
-    bool doesItFitInCostantMemory(size_t size) const;
-    struct BlockGridInfo getBlockSize(int NumRows) const;
-};
+
 
 
 

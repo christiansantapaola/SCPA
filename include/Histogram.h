@@ -5,19 +5,23 @@
 #ifndef SPARSEMATRIX_HISTOGRAM_H
 #define SPARSEMATRIX_HISTOGRAM_H
 
-#include <iostream>
-#include <algorithm>
+#include "stdio.h"
+#include "stdlib.h"
 
-class Histogram {
-    std::pair<int, int> *hist;
-    unsigned int size;
-public:
-    Histogram(unsigned int size);
-    ~Histogram();
-    void insert(int i);
-    int getElemAtIndex(int i);
-    friend std::ostream& operator<<(std::ostream& out, Histogram &histogram);
+struct Pair {
+    int first;
+    int second;
 };
 
+typedef struct Histogram {
+    struct Pair *hist;
+    unsigned int size;
+} Histogram;
+
+    Histogram *Histogram_new(unsigned int size);
+    void Histogram_free(Histogram *histogram);
+    void Histogram_insert(Histogram *histogram, int i);
+    int Histogram_getElemAtIndex(Histogram *histogram, int i);
+    void Histogram_outAsJSON(Histogram *histogram, FILE *out);
 
 #endif //SPARSEMATRIX_HISTOGRAM_H

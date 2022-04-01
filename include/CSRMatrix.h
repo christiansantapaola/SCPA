@@ -5,40 +5,23 @@
 #ifndef SPARSEMATRIX_CSRMATRIX_H
 #define SPARSEMATRIX_CSRMATRIX_H
 
-#include <iostream>
-#include <cstring>
-#include <chrono>
-
+#include <stdio.h>
 #include "COOMatrix.h"
-#include "Vector.h"
-#include "SpMVResult.h"
-
-extern "C" {
+#include "Histogram.h"
 #include "mmio.h"
-};
 
-class CSRMatrix {
-private:
+typedef struct CSRMatrix {
     float *data;
     int *col_index;
     int *row_pointer;
     int num_non_zero_elements;
     int row_size;
     int col_size;
-public:
-    CSRMatrix() = default;
-    CSRMatrix(COOMatrix &matrix);
-    ~CSRMatrix();
-    float *getData() const;
-    int *getColIndex() const;
-    int *getRowPointer() const;
-    int getNumNonZeroElements() const;
-    int getRowSize() const;
-    int getColSize() const;
-    friend std::ostream& operator<<(std::ostream &out, CSRMatrix const& matrix);
-    SpMVResult SpMV_CPU(Vector &X, Vector &Y);
-    SpMVResult SpMV_GPU(Vector &X, Vector &Y);
-};
+} CSRMatrix;
+
+    CSRMatrix *CSRMatrix_new(COOMatrix *matrix);
+    void CSRMatrix_free(CSRMatrix *matrix);
+    void CSRMatrix_outAsJSON(CSRMatrix *matrix, FILE *out);
 
 
 #endif //SPARSEMATRIX_CSRMATRIX_H

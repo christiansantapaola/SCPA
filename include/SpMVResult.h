@@ -4,11 +4,13 @@
 
 #ifndef SPARSEMATRIX_SPMVRESULT_H
 #define SPARSEMATRIX_SPMVRESULT_H
-#include <ostream>
+
+#include <stdio.h>
+#include <stdlib.h>
 #include "BlockGridInfo.h"
 
-struct SpMVResult {
-    bool success;
+typedef struct SpMVResult {
+    int success;
     float GPUInputOnDeviceTime;
     float GPUKernelExecutionTime;
     float GPUOutputFromDeviceTime;
@@ -16,10 +18,9 @@ struct SpMVResult {
     size_t GPUtotalGlobMemory;
     size_t GPUusedGlobalMemory;
     float CPUFunctionExecutionTime;
+} SpMVResult;
 
-
-    friend std::ostream& operator<<(std::ostream& out, SpMVResult& result);
-};
+void SpMVResult_outAsJSON(SpMVResult *result, FILE *out);
 
 
 #endif //SPARSEMATRIX_SPMVRESULT_H

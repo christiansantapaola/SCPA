@@ -1,11 +1,10 @@
-//
-// Created by 9669c on 31/03/2022.
-//
-
 #ifndef SPARSEMATRIX_BLOCKGRIDINFO_H
 #define SPARSEMATRIX_BLOCKGRIDINFO_H
 
-struct BlockGridInfo {
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct BlockGridInfo {
     size_t blockSize;
     size_t gridSize;
     float utilizationSM;
@@ -18,6 +17,8 @@ struct BlockGridInfo {
     unsigned long maxThreadPerBlock;
     unsigned long maxBlockSizePerSM;
     unsigned long maxThreadPerSM;
-};
+} BlockGridInfo;
+
+void BlockGridInfo_outAsJSON(BlockGridInfo *blockGridInfo, FILE *out);
 
 #endif //SPARSEMATRIX_BLOCKGRIDINFO_H

@@ -2,89 +2,66 @@
 // Created by 9669c on 16/03/2022.
 //
 
+#include <cuda.h>
+#include <cuda_runtime.h>
 #include "cudaUtils.cuh"
 
 
-CudaDeviceInfo::CudaDeviceInfo() {
-    numDevice = 0;
-    driverVersion = 0;
-    runtimeVersion = 0;
-    dev = 0;
-    checkCudaErrors(cudaGetDeviceCount(&numDevice));
-    devices = new cudaDeviceProp[numDevice];
-    for (int i = 0; i < numDevice; i++) {
-        checkCudaErrors(cudaGetDeviceProperties(&devices[i], i));
+void CudaUtils_setDevice(int device) {
+    checkCudaErrors(cudaSetDevice(device));
+}
+void CudaUtils_getDeviceProp(int device, cudaDeviceProp *prop) {
+    if (!prop) return;
+    checkCudaErrors(cudaGetDeviceProperties(prop, device));
+
+}
+int CudaUtils_getBestDevice() {
+    int numDevices;
+    cudaDeviceProp *props;
+    checkCudaErrors(cudaGetDeviceCount(&numDevices));
+    props = (cudaDeviceProp *) malloc(sizeof(*props) * numDevices);
+    for (int i = 0; i < numDevices; i++) {
+        CudaUtils_getDeviceProp(i, &props[i]);
     }
-    checkCudaErrors(cudaDriverGetVersion(&driverVersion));
-    checkCudaErrors(cudaRuntimeGetVersion(&runtimeVersion));
-}
-
-CudaDeviceInfo::~CudaDeviceInfo() {
-    delete[] devices;
-}
-
-void CudaDeviceInfo::setDevice(int device) {
-    if (device < numDevice) {
-        this->dev = device;
-        checkCudaErrors(cudaSetDevice(device));
-    }
-}
-
-cudaDeviceProp *CudaDeviceInfo::getDeviceProp(int device) const {
-    if (device < numDevice) {
-        return &devices[device];
-    }
-    return nullptr;
-}
-
-int CudaDeviceInfo::getBestDevice() const {
     int bestDev = 0;
     int numSM = 0;
     int clockRate = 0;
-    for (int i = 0; i < numDevice; i++) {
-        if (numSM < devices[i].multiProcessorCount) {
-            numSM = devices[i].multiProcessorCount;
+    for (int i = 0; i < numDevices; i++) {
+        if (numSM < props[i].multiProcessorCount) {
+            numSM = props[i].multiProcessorCount;
             bestDev = i;
-            clockRate = devices[i].clockRate;
-        } else if ( numSM == devices[i].multiProcessorCount ) {
-            if (clockRate < devices[i].clockRate) {
-                numSM = devices[i].multiProcessorCount;
+            clockRate = props[i].clockRate;
+        } else if ( numSM == props[i].multiProcessorCount ) {
+            if (clockRate < props[i].clockRate) {
+                numSM = props[i].multiProcessorCount;
                 bestDev = i;
-                clockRate = devices[i].clockRate;
+                clockRate = props[i].clockRate;
             }
         }
     }
+    free(props);
     return bestDev;
 }
-
-bool CudaDeviceInfo::doesItFitInSharedMemory(size_t size) const {
-    return devices[dev].sharedMemPerBlock >= size;
+int doesItFitInGlobalMemory(cudaDeviceProp *prop, size_t size) {
+    if (!prop) return 0;
+    return size <= prop->totalGlobalMem;
 }
-
-bool CudaDeviceInfo::doesItFitInGlobalMemory(size_t size) const {
-    return devices[dev].totalGlobalMem >= size;
-}
-
-bool CudaDeviceInfo::doesItFitInCostantMemory(size_t size) const {
-    return devices[dev].totalConstMem >= size;
-}
-
-
-struct BlockGridInfo CudaDeviceInfo::getBlockSize(int NumRows) const {
+void CudaUtils_getBestCudaParameters(unsigned int numRows, cudaDeviceProp *prop, BlockGridInfo *bestParams) {
+    if (!bestParams || !prop) return;
     int size = 0;
-    for (size = 1;  devices[dev].warpSize * size < devices[dev].maxThreadsPerBlock; size++);
-    struct BlockGridInfo *infos = new BlockGridInfo[size];
-    for (int i = 1; devices[dev].warpSize * i < devices[dev].maxThreadsPerBlock; i++) {
-        infos[i - 1].maxThreadPerBlock = devices[dev].maxThreadsPerBlock;
-        infos[i - 1].maxBlockSizePerSM = devices[dev].maxBlocksPerMultiProcessor;
-        infos[i - 1].maxThreadPerSM = devices[dev].maxThreadsPerMultiProcessor;
-        infos[i - 1].blockSize = devices[dev].warpSize * i;
-        infos[i - 1].numBlockToFillSM = devices[dev].maxThreadsPerMultiProcessor / infos[i - 1].blockSize;
-        infos[i - 1].gridSize = (NumRows % infos[i - 1].blockSize == 0) ? NumRows / infos[i - 1].blockSize : NumRows / infos[i - 1].blockSize + 1;
-        infos[i - 1].spread = (infos[i - 1].gridSize < devices[dev].multiProcessorCount) ? (float) infos[i - 1].gridSize / (float) devices[dev].multiProcessorCount : 1.0f;
+    for (size = 1;  prop->warpSize * size < prop->maxThreadsPerBlock; size++);
+    BlockGridInfo *infos = (BlockGridInfo *)malloc(size * sizeof(BlockGridInfo));
+    for (int i = 1; prop->warpSize * i < prop->maxThreadsPerBlock; i++) {
+        infos[i - 1].maxThreadPerBlock = prop->maxThreadsPerBlock;
+        infos[i - 1].maxBlockSizePerSM = prop->maxBlocksPerMultiProcessor;
+        infos[i - 1].maxThreadPerSM = prop->maxThreadsPerMultiProcessor;
+        infos[i - 1].blockSize =prop->warpSize * i;
+        infos[i - 1].numBlockToFillSM = prop->maxThreadsPerMultiProcessor / infos[i - 1].blockSize;
+        infos[i - 1].gridSize = (numRows % infos[i - 1].blockSize == 0) ? numRows / infos[i - 1].blockSize : numRows / infos[i - 1].blockSize + 1;
+        infos[i - 1].spread = (infos[i - 1].gridSize < prop->multiProcessorCount) ? (float) infos[i - 1].gridSize / (float) prop->multiProcessorCount : 1.0f;
         infos[i - 1].utilizationSM = (float) infos[i - 1].gridSize / (float) infos[i - 1].numBlockToFillSM;
         infos[i - 1].numThread = infos[i - 1].blockSize * infos[i - 1].gridSize;
-        infos[i - 1].wastedThread = infos[i - 1].numThread - NumRows;
+        infos[i - 1].wastedThread = infos[i - 1].numThread - numRows;
         infos[i - 1].wastedThreadOverNumThread = (float) (infos[i - 1].wastedThread) / (float) infos[i - 1].numThread;
         infos[i - 1].utilization = infos[i - 1].utilizationSM + infos[i - 1].spread - infos[i - 1].wastedThreadOverNumThread;
     }
@@ -96,8 +73,6 @@ struct BlockGridInfo CudaDeviceInfo::getBlockSize(int NumRows) const {
             index = i;
         }
     }
-    BlockGridInfo gridInfo = infos[index];
-    delete[] infos;
-    return gridInfo;
-}
 
+    *bestParams = infos[index];
+}

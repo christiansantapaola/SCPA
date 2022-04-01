@@ -4,28 +4,25 @@
 
 #ifndef SPARSEMATRIX_VECTOR_H
 #define SPARSEMATRIX_VECTOR_H
-#include <iostream>
 
-#include <cmath>
+#include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
+#include <memory.h>
 
-#include "SwapMap.h"
 
-class Vector {
-private:
+typedef struct Vector {
     float *data;
     unsigned int size;
+} Vector;
 
-public:
-    explicit Vector(unsigned int size);
-    ~Vector();
-    void set(float value);
-    unsigned int getSize();
-    float *getData();
-    friend std::ostream& operator<< (std::ostream &out, Vector const& matrix);
-    bool equals(const Vector &v);
-    void swap(SwapMap& swapMap);
-    void swapInverse(SwapMap& swapMap);
-};
+Vector *Vector_new(unsigned int size);
+    void Vector_free();
+    void Vector_set(Vector *vector, float value);
+    void Vector_outAsJSON(Vector *vector, FILE *out);
+    int Vector_equals(const Vector *v1, const Vector *v2);
+//    void swap(SwapMap& swapMap);
+//    void swapInverse(SwapMap& swapMap);
 
 
 #endif //SPARSEMATRIX_VECTOR_H

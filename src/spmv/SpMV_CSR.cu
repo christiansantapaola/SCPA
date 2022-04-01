@@ -3,7 +3,12 @@
 //
 
 
+extern "C" {
 #include "CSRMatrix.h"
+#include "Vector.h"
+#include "SpMVResult.h"
+#include "SpMV.h"
+}
 #include "cudaUtils.cuh"
 #include <cuda.h>
 
@@ -40,18 +45,34 @@ SpMV_CSR_kernel(int num_rows, const float *data, const int *col_index, const int
     }
 }
 
-SpMVResult CSRMatrix::SpMV_GPU(Vector &X, Vector &Y) {
-    SpMVResult result = {false, 0, 0, 0,0};
+extern "C"
+void CSRMatrix_SpMV_GPU(const CSRMatrix *matrix,const Vector *x, Vector *y, SpMVResult *result) {
     float *d_matrix_data, *d_x, *d_y;
     int *d_col_index, *d_row_ptr;
     cudaEvent_t start, stop, instart, instop, outstart, outstop;
-    if (X.getSize() != col_size && Y.getSize() != row_size) {
-        return result;
+    size_t memoryUsed;
+    if (!matrix || !x || !y) {
+        if (result) {
+            result->success = 0;
+        }
+        return;
     }
-
-    CudaDeviceInfo deviceInfo = CudaDeviceInfo();
-    deviceInfo.setDevice(deviceInfo.getBestDevice());
-    BlockGridInfo blockGridInfo = deviceInfo.getBlockSize(row_size);
+    if (x->size != matrix->col_size && y->size != matrix->row_size) {
+        if (result) {
+            result->success = 0;
+        }
+        return;
+    }
+    if (result) {
+        memset(result, 0, sizeof(*result));
+    }
+    memoryUsed = (matrix->num_non_zero_elements + x->size + y->size) * sizeof(float) +   sizeof(int) * (matrix->row_size + 1 + matrix->num_non_zero_elements);
+    int bestDev = CudaUtils_getBestDevice();
+    CudaUtils_setDevice(bestDev);
+    cudaDeviceProp prop;
+    BlockGridInfo blockGridInfo;
+    CudaUtils_getDeviceProp(bestDev, &prop);
+    CudaUtils_getBestCudaParameters(matrix->row_size, &prop, &blockGridInfo);
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     cudaEventCreate(&instart);
@@ -59,25 +80,24 @@ SpMVResult CSRMatrix::SpMV_GPU(Vector &X, Vector &Y) {
     cudaEventCreate(&outstart);
     cudaEventCreate(&outstop);
 
-    auto t0 = std::chrono::high_resolution_clock::now();
 
     cudaEventRecord(instart);
 
-    checkCudaErrors(cudaMalloc(&d_matrix_data, num_non_zero_elements * sizeof(float)));
-    checkCudaErrors(cudaMalloc(&d_col_index, num_non_zero_elements * sizeof(int)));
-    checkCudaErrors(cudaMalloc(&d_row_ptr, (row_size + 1) * sizeof(int)));
-    checkCudaErrors(cudaMalloc(&d_y, row_size * sizeof(float)));
+    checkCudaErrors(cudaMalloc(&d_matrix_data, matrix->num_non_zero_elements * sizeof(float)));
+    checkCudaErrors(cudaMalloc(&d_col_index, matrix->num_non_zero_elements * sizeof(int)));
+    checkCudaErrors(cudaMalloc(&d_row_ptr, (matrix->row_size + 1) * sizeof(int)));
+    checkCudaErrors(cudaMalloc(&d_y, matrix->row_size * sizeof(float)));
 
-    checkCudaErrors(cudaMemcpy(d_matrix_data, data,num_non_zero_elements * sizeof(float),cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(d_y, Y.getData(), row_size * sizeof(float), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(d_col_index, col_index, num_non_zero_elements * sizeof(int), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(d_row_ptr, row_pointer, (row_size + 1) * sizeof(int), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMalloc(&d_x, row_size * sizeof(float)));
-    checkCudaErrors(cudaMemcpy(d_x, X.getData(), row_size * sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(d_matrix_data, matrix->data,matrix->num_non_zero_elements * sizeof(float),cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(d_y, y->data, matrix->row_size * sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(d_col_index, matrix->col_index, matrix->num_non_zero_elements * sizeof(int), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(d_row_ptr, matrix->row_pointer, (matrix->row_size + 1) * sizeof(int), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMalloc(&d_x, matrix->row_size * sizeof(float)));
+    checkCudaErrors(cudaMemcpy(d_x, x->data, matrix->row_size * sizeof(float), cudaMemcpyHostToDevice));
 
     cudaEventRecord(instop);
     cudaEventRecord(start);
-    SpMV_CSR_kernel<<<blockGridInfo.gridSize, blockGridInfo.blockSize>>>(row_size,
+    SpMV_CSR_kernel<<<blockGridInfo.gridSize, blockGridInfo.blockSize>>>(matrix->row_size,
                                 d_matrix_data,
                                 d_col_index,
                                 d_row_ptr,
@@ -88,22 +108,25 @@ SpMVResult CSRMatrix::SpMV_GPU(Vector &X, Vector &Y) {
 
     cudaEventRecord(outstart);
     checkCudaErrors(cudaPeekAtLastError());
-    checkCudaErrors(cudaMemcpy(Y.getData(), d_y, row_size * sizeof(float), cudaMemcpyDeviceToHost));
+    checkCudaErrors(cudaMemcpy(y->data, d_y, matrix->row_size * sizeof(float), cudaMemcpyDeviceToHost));
     checkCudaErrors(cudaFree(d_matrix_data));
     checkCudaErrors(cudaFree(d_col_index));
     checkCudaErrors(cudaFree(d_row_ptr));
     checkCudaErrors(cudaFree(d_x));
     checkCudaErrors(cudaFree(d_y));
     cudaEventRecord(outstop);
-    auto t1 = std::chrono::high_resolution_clock::now();
     cudaEventSynchronize(stop);
-    cudaEventElapsedTime(&result.GPUKernelExecutionTime, start, stop);
-    cudaEventSynchronize(instop);
-    cudaEventElapsedTime(&result.GPUInputOnDeviceTime, instart, instop);
-    cudaEventSynchronize(outstop);
-    cudaEventElapsedTime(&result.GPUOutputFromDeviceTime, outstart, outstop);
-    std::chrono::duration<float> cputime = t1 - t0;
-    result.CPUFunctionExecutionTime = cputime.count() * 1000;
-    result.success = true;
-    return result;
+    if (result) {
+        result->success = 1;
+        cudaEventElapsedTime(&result->GPUKernelExecutionTime, start, stop);
+        cudaEventSynchronize(instop);
+        cudaEventElapsedTime(&result->GPUInputOnDeviceTime, instart, instop);
+        cudaEventSynchronize(outstop);
+        cudaEventElapsedTime(&result->GPUOutputFromDeviceTime, outstart, outstop);
+        result->blockGridInfo = blockGridInfo;
+        result->GPUusedGlobalMemory = memoryUsed;
+        result->GPUtotalGlobMemory = prop.totalGlobalMem;
+        return;
+    }
+
 }
