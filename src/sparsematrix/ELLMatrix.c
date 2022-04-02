@@ -27,7 +27,7 @@ void transposei(int *dest, const int *src, int num_row, int num_col) {
 
 ELLMatrix *ELLMatrix_new(CSRMatrix *csrMatrix) {
     if (!csrMatrix) return NULL;
-    ELLMatrix *ellMatrix = malloc(sizeof(ELLMatrix));
+    ELLMatrix *ellMatrix = (ELLMatrix *) malloc(sizeof(ELLMatrix));
     ellMatrix->row_size = csrMatrix->row_size;
     ellMatrix->col_size = csrMatrix->col_size;
     ellMatrix->num_non_zero_elements = csrMatrix->num_non_zero_elements;
@@ -49,22 +49,16 @@ ELLMatrix *ELLMatrix_new(CSRMatrix *csrMatrix) {
     // add padding;
     memset(ellMatrix->data, 0, ellMatrix->data_size * sizeof(float));
     memset(ellMatrix->col_index, 0, ellMatrix->data_size * sizeof(int));
-    float *temp_data = (float *) malloc(ellMatrix->data_size * sizeof(float));
-    int *temp_col_index = (int *) malloc(ellMatrix->data_size * sizeof(int));
     for (int row = 0; row < ellMatrix->row_size; row++) {
         int row_start = csrMatrix->row_pointer[row];
         int num_nz_elem = csrMatrix->row_pointer[row + 1] - row_start;
         for (int i = 0; i < num_nz_elem; i++) {
             int index = row * ellMatrix->num_elem + i;
-            temp_data[index] = csrMatrix->data[row_start + i];
-            temp_col_index[index] = csrMatrix->col_index[row_start + i];
+            ellMatrix->data[index] = csrMatrix->data[row_start + i];
+            ellMatrix->col_index[index] = csrMatrix->col_index[row_start + i];
         }
     }
 
-    transposef(ellMatrix->data, temp_data, ellMatrix->row_size, ellMatrix->num_elem);
-    transposei(ellMatrix->col_index, temp_col_index, ellMatrix->row_size, ellMatrix->num_elem);
-    free(temp_data);
-    free(temp_col_index);
     return ellMatrix;
 }
 
@@ -75,6 +69,16 @@ void ELLMatrix_free(ELLMatrix *ellMatrix) {
     free(ellMatrix);
 }
 
+void ELLMatrix_transpose(ELLMatrix *ellMatrix) {
+    float *temp_data = (float *) malloc(ellMatrix->data_size * sizeof(float));
+    int *temp_col_index = (int *) malloc(ellMatrix->data_size * sizeof(int));
+    memcpy(temp_data, ellMatrix->data, ellMatrix->data_size * sizeof(float));
+    memcpy(temp_col_index, ellMatrix->col_index, ellMatrix->data_size * sizeof(int));
+    transposef(ellMatrix->data, temp_data, ellMatrix->row_size, ellMatrix->num_elem);
+    transposei(ellMatrix->col_index, temp_col_index, ellMatrix->row_size, ellMatrix->num_elem);
+    free(temp_data);
+    free(temp_col_index);
+}
 
 void ELLMatrix_outAsJSON(ELLMatrix *matrix, FILE *out) {
     if (!out) out=stdout;

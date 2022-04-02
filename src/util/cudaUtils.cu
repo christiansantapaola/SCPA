@@ -42,10 +42,12 @@ int CudaUtils_getBestDevice() {
     free(props);
     return bestDev;
 }
+
 int doesItFitInGlobalMemory(cudaDeviceProp *prop, size_t size) {
     if (!prop) return 0;
     return size <= prop->totalGlobalMem;
 }
+
 void CudaUtils_getBestCudaParameters(unsigned int numRows, cudaDeviceProp *prop, BlockGridInfo *bestParams) {
     if (!bestParams || !prop) return;
     int size = 0;

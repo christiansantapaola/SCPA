@@ -66,10 +66,11 @@ void ELLMatrix_SpMV_GPU(const ELLMatrix *matrix,const Vector *x, Vector *y, SpMV
     checkCudaErrors(cudaMalloc(&(d_data), matrix->data_size * sizeof (float )));
     checkCudaErrors(cudaMalloc(&(d_col_index), matrix->data_size * sizeof (int )));
 
-    checkCudaErrors(cudaMemcpy(d_x, x->data, x->size * sizeof(float), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(d_y, y->data, y->size * sizeof(float), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(d_data, matrix->data, matrix->data_size * sizeof(float), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(d_col_index, matrix->col_index, matrix->num_non_zero_elements * sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpyAsync(d_x, x->data, x->size * sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpyAsync(d_y, y->data, y->size * sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpyAsync(d_data, matrix->data, matrix->data_size * sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpyAsync(d_col_index, matrix->col_index, matrix->num_non_zero_elements * sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaDeviceSynchronize());
     cudaEventRecord(instop);
     cudaEventRecord(start);
     SpMV_ELL<<<blockGridInfo.gridSize, blockGridInfo.blockSize>>>(matrix->row_size, d_data, d_col_index, matrix->num_elem, d_x, d_y);

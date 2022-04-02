@@ -19,9 +19,11 @@ typedef struct CSRMatrix {
     int col_size;
 } CSRMatrix;
 
-    CSRMatrix *CSRMatrix_new(COOMatrix *matrix);
-    void CSRMatrix_free(CSRMatrix *matrix);
-    void CSRMatrix_outAsJSON(CSRMatrix *matrix, FILE *out);
+CSRMatrix *CSRMatrix_new(COOMatrix *matrix);
+void CSRMatrix_free(CSRMatrix *matrix);
+CSRMatrix *CSRMatrix_pinned_memory_new(COOMatrix *matrix);
+void CSRMatrix_pinned_memory_free(CSRMatrix *matrix);
+void CSRMatrix_outAsJSON(CSRMatrix *matrix, FILE *out);
 
 
 #endif //SPARSEMATRIX_CSRMATRIX_H

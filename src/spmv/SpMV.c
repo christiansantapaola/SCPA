@@ -58,7 +58,7 @@ void ELLMatrix_SpMV_CPU(const ELLMatrix *matrix,const Vector *x, Vector *y, SpMV
     for (int row = 0; row < matrix->row_size; row++) {
         float dot = 0.0f;
         for (int i = 0; i < matrix->num_elem; i++) {
-            int index = row + i * matrix->row_size;
+            int index = row * matrix->num_elem + i;
             dot += matrix->data[index] * x->data[matrix->col_index[index]];
         }
         y->data[row] += dot;

@@ -7,7 +7,7 @@ Vector *Vector_new(unsigned int size) {
     if (!vector->data) {
         return NULL;
     }
-    memset(vector->data, 0, size);
+    memset(vector->data, 0, size * sizeof(float));
     return vector;
 }
 
@@ -30,8 +30,6 @@ int Vector_equals(const Vector *v1, const Vector *v2) {
         }
     }
     return 1;
-
-
 }
 
 

@@ -31,10 +31,10 @@ int main(int argc, char *argv[]) {
     if (file != stdin) {
         fclose(file);
     }
-    CSRMatrix *csrMatrix = CSRMatrix_new(cooMatrix);
-    Vector* X = Vector_new(csrMatrix->col_size);
+    CSRMatrix *csrMatrix = CSRMatrix_pinned_memory_new(cooMatrix);
+    Vector* X = Vector_pinned_memory_new(csrMatrix->col_size);
     Vector* Y = Vector_new(csrMatrix->row_size);
-    Vector* Z = Vector_new(csrMatrix->row_size);
+    Vector* Z = Vector_pinned_memory_new(csrMatrix->row_size);
     Vector_set(X, 1.0f);
     Vector_set(Y, 0.0f);
     Vector_set(Z, 0.0f);
@@ -51,10 +51,10 @@ int main(int argc, char *argv[]) {
     fprintf(stdout, "\"GPUresult\": ");
     SpMVResult_outAsJSON(&gpuResult, stdout);
     fprintf(stdout, "\n}\n");
-    Vector_free(Z);
+    Vector_pinned_memory_free(Z);
     Vector_free(Y);
-    Vector_free(X);
-    CSRMatrix_free(csrMatrix);
+    Vector_pinned_memory_free(X);
+    CSRMatrix_pinned_memory_free(csrMatrix);
     COOMatrix_free(cooMatrix);
     return EXIT_SUCCESS;
 

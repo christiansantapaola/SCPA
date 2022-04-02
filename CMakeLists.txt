@@ -40,10 +40,12 @@ add_executable(readELL
 add_executable(spmvCSR
         src/csrMatrixMain.c
         src/sparsematrix/CSRMatrix.c
+        src/sparsematrix/CSRMatrix.cu
         src/sparsematrix/COOMatrix.c
+        src/sparsematrix/Vector.c
+        src/sparsematrix/Vector.cu
         src/spmv/SpMV_CSR.cu
         lib/mmio/src/mmio.c
-        src/sparsematrix/Vector.c
         src/util/Histogram.c
         src/util/cudaUtils.cu
         src/spmv/SpMVResult.c
@@ -57,9 +59,11 @@ set_target_properties(spmvCSR PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 add_executable(spmvELL
         src/ellmatrixMain.c
         src/sparsematrix/ELLMatrix.c
+        src/sparsematrix/ELLMatrix.cu
         src/sparsematrix/CSRMatrix.c
         src/sparsematrix/COOMatrix.c
         src/sparsematrix/Vector.c
+        src/sparsematrix/Vector.cu
         lib/mmio/src/mmio.c
         src/util/Histogram.c
         src/util/cudaUtils.cu
