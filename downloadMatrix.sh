@@ -2,7 +2,7 @@
 
 wget https://suitesparse-collection-website.herokuapp.com/MM/vanHeukelum/cage4.tar.gz
 
-wget https://sparse.tamu.edu/Bai/mhda416
+wget https://suitesparse-collection-website.herokuapp.com/MM/Bai/mhda416.tar.gz
 
 wget https://suitesparse-collection-website.herokuapp.com/MM/HB/mcfe.tar.gz
 
