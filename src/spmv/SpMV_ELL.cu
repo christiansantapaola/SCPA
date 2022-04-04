@@ -24,12 +24,12 @@ __global__ void SpMV_ELL(int num_rows, const float *data, const int *col_index, 
     }
 }
 
-void ELLMatrix_SpMV_GPU(const ELLMatrix *matrix,const Vector *x, Vector *y, SpMVResult *result) {
+void ELLMatrix_SpMV_GPU(const ELLMatrix *matrix,const Vector *x, Vector *y, SpMVResultCUDA *result) {
     float *d_x, *d_y;
     float *d_data;
     int *d_col_index;
     cudaEvent_t start, stop, instart, instop, outstart, outstop;
-
+    clock_t cstart = clock();
     size_t memoryUsed;
     if (!matrix || !x || !y) {
         if (result) {
@@ -85,8 +85,10 @@ void ELLMatrix_SpMV_GPU(const ELLMatrix *matrix,const Vector *x, Vector *y, SpMV
     checkCudaErrors(cudaFree(d_col_index));
     cudaEventRecord(outstop);
     cudaEventSynchronize(stop);
+    clock_t cend = clock();
     if (result) {
         result->success = 1;
+        result->CPUFunctionExecutionTime = ((float) (cend - cstart) / CLOCKS_PER_SEC) * 1000.0f;
         cudaEventElapsedTime(&result->GPUKernelExecutionTime, start, stop);
         cudaEventSynchronize(instop);
         cudaEventElapsedTime(&result->GPUInputOnDeviceTime, instart, instop);

@@ -3,8 +3,10 @@
 //
 
 #include "ELLMatrix.h"
+#include <omp.h>
 
-void transposef(float *dest, const float *src, int num_row, int num_col) {
+void transposef(float *restrict dest, const float *restrict src, int num_row, int num_col) {
+#pragma omp parallel for schedule(dynamic, 256) shared(num_row, num_col, dest, src) default(none)
     for (int row = 0; row < num_row; row++) {
         for (int col = 0; col < num_col; col++) {
             int srcIdx = row * num_col + col;
@@ -14,7 +16,8 @@ void transposef(float *dest, const float *src, int num_row, int num_col) {
     }
 }
 
-void transposei(int *dest, const int *src, int num_row, int num_col) {
+void transposei(int *restrict dest, const int *restrict src, int num_row, int num_col) {
+#pragma omp parallel for schedule(dynamic, 256) shared(num_row, num_col, dest, src) default(none)
     for (int row = 0; row < num_row; row++) {
         for (int col = 0; col < num_col; col++) {
             int srcIdx = row * num_col + col;

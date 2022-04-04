@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.18)
 project(SparseMatrix  LANGUAGES C CXX CUDA)
 # find package
 find_package(CUDA 11.0 REQUIRED)
+find_package(OpenMP REQUIRED)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -38,7 +39,7 @@ add_executable(readELL
 )
 
 add_executable(spmvCSR
-        src/csrMatrixMain.c
+        src/spmvCSRCuda.c
         src/sparsematrix/CSRMatrix.c
         src/sparsematrix/CSRMatrix.cu
         src/sparsematrix/COOMatrix.c
@@ -53,11 +54,11 @@ add_executable(spmvCSR
         src/util/BlockGridInfo.c
         )
 
-target_link_libraries(spmvCSR ${CUDA_LIBRARIES})
+target_link_libraries(spmvCSR ${CUDA_LIBRARIES} OpenMP::OpenMP_C)
 set_target_properties(spmvCSR PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 add_executable(spmvELL
-        src/ellmatrixMain.c
+        src/spmvELLCuda.c
         src/sparsematrix/ELLMatrix.c
         src/sparsematrix/ELLMatrix.cu
         src/sparsematrix/CSRMatrix.c
@@ -70,7 +71,38 @@ add_executable(spmvELL
         src/spmv/SpMV_ELL.cu
         src/spmv/SpMVResult.c
         src/spmv/SpMV.c
+        src/spmv/SpMV_ELL_openmp.c
         src/util/BlockGridInfo.c)
 
-target_link_libraries(spmvELL ${CUDA_LIBRARIES})
+target_link_libraries(spmvELL ${CUDA_LIBRARIES} OpenMP::OpenMP_C)
 set_target_properties(spmvELL PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
+add_executable(spmvELLOpenMP
+        src/spmvELLOpenMP.c
+        src/sparsematrix/ELLMatrix.c
+        src/sparsematrix/CSRMatrix.c
+        src/sparsematrix/COOMatrix.c
+        src/sparsematrix/Vector.c
+        lib/mmio/src/mmio.c
+        src/util/Histogram.c
+        src/spmv/SpMVResult.c
+        src/spmv/SpMV.c
+        src/spmv/SpMV_ELL_openmp.c
+        src/util/BlockGridInfo.c)
+
+target_link_libraries(spmvELLOpenMP OpenMP::OpenMP_C)
+
+add_executable(spmvCSROpenMP
+        src/spmvCSROpenMP.c
+        src/sparsematrix/ELLMatrix.c
+        src/sparsematrix/CSRMatrix.c
+        src/sparsematrix/COOMatrix.c
+        src/sparsematrix/Vector.c
+        lib/mmio/src/mmio.c
+        src/util/Histogram.c
+        src/spmv/SpMVResult.c
+        src/spmv/SpMV.c
+        src/spmv/SpMV_CSR_openmp.c
+        src/util/BlockGridInfo.c)
+
+target_link_libraries(spmvCSROpenMP OpenMP::OpenMP_C)

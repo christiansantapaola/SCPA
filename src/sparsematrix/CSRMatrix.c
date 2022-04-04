@@ -4,46 +4,6 @@
 
 #include "CSRMatrix.h"
 
-//CSRMatrix::CSRMatrix(COOMatrix &matrix) {
-//    row_size = matrix.getRowSize();
-//    col_size = matrix.getColSize();
-//    num_non_zero_elements = matrix.getNumNonZeroElements();
-//    data = new float[num_non_zero_elements];
-//    col_index = new int[num_non_zero_elements];
-//    row_pointer = new int[row_size + 1];
-//    memset(row_pointer, 0, (row_size + 1) * sizeof(int));
-//    char *isInit = new char[row_size + 1];
-//    memset(isInit, 0, sizeof(char) * (row_size + 1));
-//    int lastpos = 0;
-//    for (int row = 0; row < row_size; row++) {
-//        for (int i = 0; i < num_non_zero_elements; i++) {
-//            float val = matrix.getData()[i];
-//            int col = matrix.getColIndex()[i];
-//            int elem_row = matrix.getRowIndex()[i];
-//            if (elem_row == row) {
-//                data[lastpos] = val;
-//                col_index[lastpos] = col;
-//                if (isInit[elem_row] == 0) {
-//                    row_pointer[elem_row] = lastpos;
-//                    isInit[elem_row] = 1;
-//                }
-//                lastpos++;
-//            }
-//        }
-//    }
-//    // se una riga è vuota, il suo indice deve essere quello della riga successiva.
-//    // Precedentemente è stato assegnato un valore solo alle righe non vuote, qui assegname le altre.
-//    // Iteriamo al contrario, cosi possiamo far propagare il valore di riga in caso di multiple righe vuote.
-//    for (int row = row_size - 1; row > 0; row--) {
-//        if (!isInit[row]) {
-//            row_pointer[row] = row_pointer[row + 1];
-//        }
-//    }
-//    delete[] isInit;
-//    row_pointer[row_size] = num_non_zero_elements;
-//}
-
-
 CSRMatrix *CSRMatrix_new(COOMatrix *cooMatrix) {
     if (!cooMatrix) return NULL;
     CSRMatrix *csrMatrix = NULL;

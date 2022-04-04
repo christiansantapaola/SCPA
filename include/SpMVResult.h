@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include "BlockGridInfo.h"
 
-typedef struct SpMVResult {
+typedef struct SpMVResultCUDA {
     int success;
     float GPUInputOnDeviceTime;
     float GPUKernelExecutionTime;
@@ -18,9 +18,23 @@ typedef struct SpMVResult {
     size_t GPUtotalGlobMemory;
     size_t GPUusedGlobalMemory;
     float CPUFunctionExecutionTime;
-} SpMVResult;
+} SpMVResultCUDA;
 
-void SpMVResult_outAsJSON(SpMVResult *result, FILE *out);
+typedef struct SpMVResultOpenMP {
+    int success;
+    float timeElapsed;
+    int numThreads;
+} SpMVResultOpenMP;
+
+typedef struct SpMVResultCPU {
+    int success;
+    float timeElapsed;
+} SpMVResultCPU;
+
+void SpMVResultCUDA_outAsJSON(SpMVResultCUDA *result, FILE *out);
+void SpMVResultOpenMP_outAsJSON(SpMVResultOpenMP *result, FILE *out);
+void SpMVResultCPU_outAsJSON(SpMVResultCPU *result, FILE *out);
+
 
 
 #endif //SPARSEMATRIX_SPMVRESULT_H

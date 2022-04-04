@@ -1,6 +1,6 @@
 #include "SpMV.h"
 
-void CSRMatrix_SpMV_CPU(const CSRMatrix *matrix,const Vector *x, Vector *y, SpMVResult *result) {
+void CSRMatrix_SpMV_CPU(const CSRMatrix *matrix,const Vector *x, Vector *y, SpMVResultCPU *result) {
     clock_t start, end;
     if (!matrix || !x || !y) {
         if (result) {
@@ -30,11 +30,11 @@ void CSRMatrix_SpMV_CPU(const CSRMatrix *matrix,const Vector *x, Vector *y, SpMV
     end = clock();
     if (result) {
         result->success = 1;
-        result->CPUFunctionExecutionTime = ((float) (end - start)) / CLOCKS_PER_SEC * 1000.0;
+        result->timeElapsed = ((float) (end - start)) / CLOCKS_PER_SEC * 1000.0f;
     }
 }
 
-void ELLMatrix_SpMV_CPU(const ELLMatrix *matrix,const Vector *x, Vector *y, SpMVResult *result) {
+void ELLMatrix_SpMV_CPU(const ELLMatrix *matrix,const Vector *x, Vector *y, SpMVResultCPU *result) {
     clock_t start, end;
     if (!matrix || !x || !y) {
         if (result) {
@@ -67,6 +67,7 @@ void ELLMatrix_SpMV_CPU(const ELLMatrix *matrix,const Vector *x, Vector *y, SpMV
 
     if (result) {
         result->success = 1;
-        result->CPUFunctionExecutionTime = ((float) (end - start)) / CLOCKS_PER_SEC * 1000.0;
+        result->timeElapsed = ((float) (end - start)) / CLOCKS_PER_SEC * 1000.0f;
     }
 }
+
