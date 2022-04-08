@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
     int success = Vector_equals(Y, Z);
     fprintf(stdout, "{\n");
     fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
-    fprintf(stdout, "\"MatrixInfo: \"");
+    fprintf(stdout, "\"MatrixInfo\": ");
     CSRMatrix_infoOutAsJSON(csrMatrix, stdout);
     fprintf(stdout, ",\n");
     fprintf(stdout, "\"CPUresult\": ");

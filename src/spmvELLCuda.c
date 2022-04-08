@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
     int success = Vector_equals(Y, Z);
     fprintf(stdout, "{\n");
     fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
-    fprintf(stdout, "\"MatrixInfo: \"");
+    fprintf(stdout, "\"MatrixInfo\": ");
     ELLMatrix_infoOutAsJSON(ellMatrix, stdout);
     fprintf(stdout, ",\n");
     fprintf(stdout, "\"CPUresult\": ");
