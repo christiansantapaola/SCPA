@@ -12,7 +12,7 @@ extern "C" {
 #include "SpMV.h"
 }
 
-__global__ void SpMV_ELL(int num_rows, const float *data, const int *col_index, int num_elem, const float *x, float *y) {
+__global__ void SpMV_ELL(unsigned int num_rows, const float *data, const unsigned int *col_index, unsigned int num_elem, const float *x, float *y) {
     int row = blockDim.x * blockIdx.x + threadIdx.x;
     if (row < num_rows) {
         float dot = 0.0f;
@@ -27,7 +27,7 @@ __global__ void SpMV_ELL(int num_rows, const float *data, const int *col_index, 
 void ELLMatrix_SpMV_GPU(const ELLMatrix *matrix,const Vector *x, Vector *y, SpMVResultCUDA *result) {
     float *d_x, *d_y;
     float *d_data;
-    int *d_col_index;
+    unsigned int *d_col_index;
     cudaEvent_t start, stop, instart, instop, outstart, outstop;
     clock_t cstart = clock();
     size_t memoryUsed;
@@ -64,7 +64,7 @@ void ELLMatrix_SpMV_GPU(const ELLMatrix *matrix,const Vector *x, Vector *y, SpMV
     checkCudaErrors(cudaMalloc(&(d_x), x->size * sizeof (float )));
     checkCudaErrors(cudaMalloc(&(d_y), y->size * sizeof (float )));
     checkCudaErrors(cudaMalloc(&(d_data), matrix->data_size * sizeof (float )));
-    checkCudaErrors(cudaMalloc(&(d_col_index), matrix->data_size * sizeof (int )));
+    checkCudaErrors(cudaMalloc(&(d_col_index), matrix->data_size * sizeof (unsigned int )));
 
     checkCudaErrors(cudaMemcpyAsync(d_x, x->data, x->size * sizeof(float), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpyAsync(d_y, y->data, y->size * sizeof(float), cudaMemcpyHostToDevice));

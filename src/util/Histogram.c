@@ -4,7 +4,7 @@
 
 #include "Histogram.h"
 
-Histogram *Histogram_new(unsigned int size) {
+Histogram *Histogram_new(u_int64_t size) {
     Histogram *histogram = malloc(sizeof(Histogram));
     if (!histogram) {
         return NULL;
@@ -24,14 +24,14 @@ void Histogram_free(Histogram *histogram) {
     free(histogram);
 }
 
-void Histogram_insert(Histogram *histogram, int i) {
+void Histogram_insert(Histogram *histogram, u_int64_t i) {
     if (!histogram) return;
     if (i < histogram->size) {
         histogram->hist[i].first++;
     }
 }
 
-int Histogram_getElemAtIndex(Histogram *histogram, int i) {
+u_int64_t Histogram_getElemAtIndex(Histogram *histogram, u_int64_t i) {
     if (i < histogram->size) {
         return histogram->hist[i].first;
     } else {
@@ -41,11 +41,11 @@ int Histogram_getElemAtIndex(Histogram *histogram, int i) {
 
 void Histogram_outAsJSON(Histogram *histogram, FILE *out) {
     fprintf(out, "%s\n", "{ ");
-    fprintf(out, "%s: %u,\n", "\"size\"",  histogram->size);
+    fprintf(out, "%s: %lu,\n", "\"size\"",  histogram->size);
     fprintf(out, "%s: [ ", "\"hist\"");
     for (int i=0; i < histogram->size - 1; i++) {
-        fprintf(out, "{%d, %d}, ", histogram->hist[i].first, histogram->hist[i].second);
+        fprintf(out, "{%lu, %lu}, ", histogram->hist[i].first, histogram->hist[i].second);
     }
-    fprintf(out, "{%d, %d} ],\n", histogram->hist[histogram->size - 1].first, histogram->hist[histogram->size - 1].second);
+    fprintf(out, "{%lu, %lu} ],\n", histogram->hist[histogram->size - 1].first, histogram->hist[histogram->size - 1].second);
     fprintf(out, "%s", "}");
 }

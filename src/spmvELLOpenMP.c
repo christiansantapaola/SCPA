@@ -39,16 +39,24 @@ int main(int argc, char *argv[]) {
     SpMVResultCPU cpuResult;
     ELLMatrix_SpMV_CPU(ellMatrix, X, Y, &cpuResult);
     SpMVResultCPU openmpResult;
-    ELLMatrix_transpose(ellMatrix);
     ELLMatrix_SpMV_OPENMP(ellMatrix, X, Z, &openmpResult);
     int success = Vector_equals(Y, Z);
     fprintf(stdout, "{\n");
     fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
-    fprintf(stdout, "\"CPUresult\": ");
-    SpMVResultCPU_outAsJSON(&cpuResult, stdout);
-    fprintf(stdout, ",\n");
-    fprintf(stdout, "\"OpenMPResult\": ");
-    SpMVResultCPU_outAsJSON(&openmpResult, stdout);
+    if (!success) {
+        fprintf(stdout, "Y: ");
+        Vector_outAsJSON(Y, stdout);
+        putc(',', stdout);
+        putc('\n', stdout);
+        fprintf(stdout, "Z: ");
+        Vector_outAsJSON(Z, stdout);
+    } else {
+        fprintf(stdout, "\"CPUresult\": ");
+        SpMVResultCPU_outAsJSON(&cpuResult, stdout);
+        fprintf(stdout, ",\n");
+        fprintf(stdout, "\"OpenMPResult\": ");
+        SpMVResultCPU_outAsJSON(&openmpResult, stdout);
+    }
     fprintf(stdout, "\n}\n");
     Vector_free(Z);
     Vector_free(Y);

@@ -26,10 +26,10 @@ extern "C" ELLMatrix *ELLMatrix_pinned_memory_new(CSRMatrix *csrMatrix) {
     ellMatrix->data_size = ellMatrix->row_size * ellMatrix->num_elem;
 
     checkCudaErrors(cudaHostAlloc(&ellMatrix->data, ellMatrix->data_size * sizeof(float), cudaHostAllocDefault));
-    checkCudaErrors(cudaHostAlloc(&ellMatrix->col_index, ellMatrix->data_size * sizeof(int), cudaHostAllocDefault));
+    checkCudaErrors(cudaHostAlloc(&ellMatrix->col_index, ellMatrix->data_size * sizeof(u_int64_t), cudaHostAllocDefault));
     // add padding;
     memset(ellMatrix->data, 0, ellMatrix->data_size * sizeof(float));
-    memset(ellMatrix->col_index, 0, ellMatrix->data_size * sizeof(int));
+    memset(ellMatrix->col_index, 0, ellMatrix->data_size * sizeof(u_int64_t));
     for (int row = 0; row < ellMatrix->row_size; row++) {
         int row_start = csrMatrix->row_pointer[row];
         int num_nz_elem = csrMatrix->row_pointer[row + 1] - row_start;

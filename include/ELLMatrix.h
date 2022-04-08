@@ -12,12 +12,12 @@
 
 typedef struct ELLMatrix {
     float *data;
-    int *col_index;
+    u_int64_t *col_index;
     size_t data_size;
-    int num_elem;
-    int row_size;
-    int col_size;
-    int num_non_zero_elements;
+    u_int64_t num_elem;
+    u_int64_t row_size;
+    u_int64_t col_size;
+    u_int64_t num_non_zero_elements;
 } ELLMatrix;
 
 ELLMatrix *ELLMatrix_new(CSRMatrix *csrMatrix);
@@ -26,7 +26,7 @@ ELLMatrix *ELLMatrix_pinned_memory_new(CSRMatrix *csrMatrix);
 void ELLMatrix_pinned_memory_free(ELLMatrix *ellMatrix);
 void ELLMatrix_transpose(ELLMatrix *ellMatrix);
 void ELLMatrix_outAsJSON(ELLMatrix *matrix, FILE *out);
-
+void ELLMatrix_infoOutAsJSON(ELLMatrix *matrix, FILE *out);
 
 
 #endif //SPARSEMATRIX_ELLMATRIX_H

@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
     }
     FILE *file = fopen(argv[1], "r");
     if (!file) {
-        perror("fopen()");
+        perror(argv[1]);
         return 1;
     }
     // COOMatrix cooMatrix = COOMatrix((float*)TEST_MATRIX, 4, 4);
@@ -32,9 +32,25 @@ int main(int argc, char *argv[]) {
         fclose(file);
     }
     CSRMatrix *csrMatrix = CSRMatrix_pinned_memory_new(cooMatrix);
+    if (!csrMatrix) {
+        perror("CSRMatrix_pinned_memory_new()");
+        return EXIT_FAILURE;
+    }
     Vector* X = Vector_pinned_memory_new(csrMatrix->col_size);
+    if (!X) {
+        perror("Vector_pinned_memory_new()");
+        return EXIT_FAILURE;
+    }
     Vector* Y = Vector_new(csrMatrix->row_size);
+    if (!Y) {
+        perror("Vector_new");
+        return EXIT_FAILURE;
+    }
     Vector* Z = Vector_pinned_memory_new(csrMatrix->row_size);
+    if (!Z) {
+        perror("Vector_pinned_memory_new");
+        return EXIT_FAILURE;
+    }
     Vector_set(X, 1.0f);
     Vector_set(Y, 0.0f);
     Vector_set(Z, 0.0f);
@@ -45,6 +61,9 @@ int main(int argc, char *argv[]) {
     int success = Vector_equals(Y, Z);
     fprintf(stdout, "{\n");
     fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
+    fprintf(stdout, "\"MatrixInfo: \"");
+    CSRMatrix_infoOutAsJSON(csrMatrix, stdout);
+    fprintf(stdout, ",\n");
     fprintf(stdout, "\"CPUresult\": ");
     SpMVResultCPU_outAsJSON(&cpuResult, stdout);
     fprintf(stdout, ",\n");

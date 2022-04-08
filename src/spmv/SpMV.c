@@ -60,7 +60,9 @@ void ELLMatrix_SpMV_CPU(const ELLMatrix *matrix,const Vector *x, Vector *y, SpMV
         for (int i = 0; i < matrix->num_elem; i++) {
             int index = row * matrix->num_elem + i;
             dot += matrix->data[index] * x->data[matrix->col_index[index]];
+            //fprintf(stderr, "thread: %d/%d, row: %u, dot: %f, matrix->data[%u]: %f\n", 0,0, row, dot, index, matrix->data[index]);
         }
+        //fprintf(stderr, "thread: %d/%d, row: %u, dot: %f,\n", 0, 0, row, dot);
         y->data[row] += dot;
     }
     end = clock();

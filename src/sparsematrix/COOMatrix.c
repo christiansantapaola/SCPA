@@ -1,11 +1,11 @@
 #include "COOMatrix.h"
-
+#include <string.h>
 
 COOMatrix *COOMatrix_new(FILE *f) {
     int ret_code;
     MM_typecode matcode;
     int M, N, nz;
-    int i, *I, *J;
+    u_int64_t i, *I, *J;
     double *val;
     COOMatrix *matrix = NULL;
 
@@ -40,13 +40,13 @@ COOMatrix *COOMatrix_new(FILE *f) {
     matrix->row_size = M;
     matrix->col_size = N;
     matrix->num_non_zero_elements = nz;
-    matrix->row_index = (int *) malloc(matrix->num_non_zero_elements * sizeof(int));
+    matrix->row_index = (u_int64_t *) malloc(matrix->num_non_zero_elements * sizeof(u_int64_t));
     if (!matrix->row_index) {
         perror("COOMatrix_new(): ");
         free(matrix);
         return NULL;
     }
-    matrix->col_index = (int *) malloc(matrix->num_non_zero_elements * sizeof(int));
+   matrix->col_index = (u_int64_t *) malloc(matrix->num_non_zero_elements * sizeof(u_int64_t));
     if (!matrix->col_index) {
         perror("COOMatrix_new(): ");
         free(matrix->row_index);
@@ -67,9 +67,12 @@ COOMatrix *COOMatrix_new(FILE *f) {
     /*   specifier as in "%lg", "%lf", "%le", otherwise errors will occur */
     /*  (ANSI C X3.159-1989, Sec. 4.9.6.2, p. 136 lines 13-15)            */
 
-    for (i=0; i<nz; i++)
-    {
-        fscanf(f, "%d %d %f\n", &matrix->col_index[i], &matrix->row_index[i], &matrix->data[i]);
+    for (i=0; i<nz; i++) {
+        int res = MTXParseLine(f, &matrix->col_index[i], &matrix->row_index[i], &matrix->data[i]);
+        if (res == -1) {
+            fprintf(stderr, "MTXParseLine failed!");
+            exit(EXIT_FAILURE);
+        }
         /* adjust from 1-based to 0-based */
         matrix->row_index[i]--;
         matrix->col_index[i]--;
@@ -77,61 +80,61 @@ COOMatrix *COOMatrix_new(FILE *f) {
     return matrix;
 }
 
-COOMatrix *newCOOMatrixFromMatrixArray(const float *Matrix, int rows, int cols) {
-    /* reserve memory for matrices */
-    COOMatrix *matrix = NULL;
-    matrix = (COOMatrix *) malloc(sizeof(COOMatrix));
-    if (!matrix) {
-        perror("COOMatrix_new(): ");
-        return NULL;
-    }
-    matrix->row_size = rows;
-    matrix->col_size = cols;
-    matrix->num_non_zero_elements = 0;
-
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            float value = Matrix[i * cols + j];
-            if (fabsf(value) > 0.00001) {
-                matrix->num_non_zero_elements++;
-            }
-        }
-    }
-    matrix->row_index = (int *) malloc(matrix->num_non_zero_elements * sizeof(int));
-    if (!matrix->row_index) {
-        perror("COOMatrix_new(): ");
-        free(matrix);
-        return NULL;
-    }
-    matrix->col_index = (int *) malloc(matrix->num_non_zero_elements * sizeof(int));
-    if (!matrix->col_index) {
-        perror("COOMatrix_new(): ");
-        free(matrix->row_index);
-        free(matrix);
-        return NULL;
-    }
-    matrix->data =(float *) malloc(matrix->num_non_zero_elements * sizeof(float));
-    if (!matrix->data) {
-        free(matrix->col_index);
-        free(matrix->row_index);
-        free(matrix);
-        perror("COOMatrix_new(): ");
-        return NULL;
-    }
-    int k = 0;
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            float value = Matrix[i * cols + j];
-            if (fabsf(value) > 0.00001) {
-                matrix->data[k] = value;
-                matrix->row_index[k] = i;
-                matrix->col_index[k] = j;
-                k++;
-            }
-        }
-    }
-    return matrix;
-}
+//COOMatrix *newCOOMatrixFromMatrixArray(const float *Matrix, int rows, int cols) {
+//    /* reserve memory for matrices */
+//    COOMatrix *matrix = NULL;
+//    matrix = (COOMatrix *) malloc(sizeof(COOMatrix));
+//    if (!matrix) {
+//        perror("COOMatrix_new(): ");
+//        return NULL;
+//    }
+//    matrix->row_size = rows;
+//    matrix->col_size = cols;
+//    matrix->num_non_zero_elements = 0;
+//
+//    for (int i = 0; i < rows; i++) {
+//        for (int j = 0; j < cols; j++) {
+//            float value = Matrix[i * cols + j];
+//            if (fabsf(value) > 0.00001) {
+//                matrix->num_non_zero_elements++;
+//            }
+//        }
+//    }
+//    matrix->row_index = (int *) malloc(matrix->num_non_zero_elements * sizeof(int));
+//    if (!matrix->row_index) {
+//        perror("COOMatrix_new(): ");
+//        free(matrix);
+//        return NULL;
+//    }
+//    matrix->col_index = (int *) malloc(matrix->num_non_zero_elements * sizeof(int));
+//    if (!matrix->col_index) {
+//        perror("COOMatrix_new(): ");
+//        free(matrix->row_index);
+//        free(matrix);
+//        return NULL;
+//    }
+//    matrix->data =(float *) malloc(matrix->num_non_zero_elements * sizeof(float));
+//    if (!matrix->data) {
+//        free(matrix->col_index);
+//        free(matrix->row_index);
+//        free(matrix);
+//        perror("COOMatrix_new(): ");
+//        return NULL;
+//    }
+//    int k = 0;
+//    for (int i = 0; i < rows; i++) {
+//        for (int j = 0; j < cols; j++) {
+//            float value = Matrix[i * cols + j];
+//            if (fabsf(value) > 0.00001) {
+//                matrix->data[k] = value;
+//                matrix->row_index[k] = i;
+//                matrix->col_index[k] = j;
+//                k++;
+//            }
+//        }
+//    }
+//    return matrix;
+//}
 
 void COOMatrix_free(COOMatrix *matrix) {
     if (!matrix) return;
@@ -147,21 +150,21 @@ void COOMatrix_outAsJSON(COOMatrix *matrix, FILE *out) {
         fprintf(out, "{}");
     }
     fprintf(out, "%s\n", "{ ");
-    fprintf(out, "%s: %d,\n", "\"row size\"",  matrix->row_size);
-    fprintf(out, "%s: %d,\n", "\"col size\"",  matrix->col_size);
-    fprintf(out, "%s: %d,\n", "\"num_non_zero_elements\"",  matrix->num_non_zero_elements);
+    fprintf(out, "%s: %lu,\n", "\"row size\"",  matrix->row_size);
+    fprintf(out, "%s: %lu,\n", "\"col size\"",  matrix->col_size);
+    fprintf(out, "%s: %lu,\n", "\"num_non_zero_elements\"",  matrix->num_non_zero_elements);
     fprintf(out, "%s: [ ", "\"row_index\"");
-    for (int i=0; i < matrix->num_non_zero_elements - 1; i++) {
-        fprintf(out, "%d, ", matrix->row_index[i]);
+    for (u_int64_t i=0; i < matrix->num_non_zero_elements - 1; i++) {
+        fprintf(out, "%lu, ", matrix->row_index[i]);
     }
-    fprintf(out, "%d ],\n", matrix->row_index[matrix->num_non_zero_elements - 1]);
+    fprintf(out, "%lu ],\n", matrix->row_index[matrix->num_non_zero_elements - 1]);
     fprintf(out, "%s: [ ", "\"col_index\"");
-    for (int i=0; i < matrix->num_non_zero_elements - 1; i++) {
-        fprintf(out, "%d, ", matrix->col_index[i]);
+    for (u_int64_t i=0; i < matrix->num_non_zero_elements - 1; i++) {
+        fprintf(out, "%lu, ", matrix->col_index[i]);
     }
-    fprintf(out, "%d ],\n", matrix->col_index[matrix->num_non_zero_elements - 1]);
+    fprintf(out, "%lu ],\n", matrix->col_index[matrix->num_non_zero_elements - 1]);
     fprintf(out, "%s: [ ", "\"data\"");
-    for (int i=0; i < matrix->num_non_zero_elements - 1; i++) {
+    for (u_int64_t i=0; i < matrix->num_non_zero_elements - 1; i++) {
         fprintf(out, "%f, ", matrix->data[i]);
     }
     fprintf(out, "%f ]\n", matrix->data[matrix->num_non_zero_elements - 1]);

@@ -14,8 +14,8 @@ extern "C" CSRMatrix *CSRMatrix_pinned_memory_new(COOMatrix *cooMatrix) {
     csrMatrix->col_size = cooMatrix->col_size;
     csrMatrix->num_non_zero_elements = cooMatrix->num_non_zero_elements;
     checkCudaErrors(cudaHostAlloc(&csrMatrix->data, csrMatrix->num_non_zero_elements * sizeof(float ), cudaHostAllocDefault));
-    checkCudaErrors(cudaHostAlloc(&csrMatrix->col_index, csrMatrix->num_non_zero_elements * sizeof(int ), cudaHostAllocDefault));
-    checkCudaErrors(cudaHostAlloc(&csrMatrix->row_pointer, (csrMatrix->row_size + 1) * sizeof (int ), cudaHostAllocDefault));
+    checkCudaErrors(cudaHostAlloc(&csrMatrix->col_index, csrMatrix->num_non_zero_elements * sizeof(u_int64_t), cudaHostAllocDefault))
+    checkCudaErrors(cudaHostAlloc(&csrMatrix->row_pointer, (csrMatrix->row_size + 1) * sizeof (u_int64_t), cudaHostAllocDefault));
     Histogram *elemForRow = Histogram_new(csrMatrix->row_size);
 
     // mi calcolo prima la posizione in base alle righe, poi aggiungo il resto,
@@ -33,14 +33,14 @@ extern "C" CSRMatrix *CSRMatrix_pinned_memory_new(COOMatrix *cooMatrix) {
      */
     Histogram *elemInsertedForRow = Histogram_new(csrMatrix->row_size);
     for (int i = 0; i < csrMatrix->num_non_zero_elements; i++) {
-        int row = cooMatrix->row_index[i];
-        int col = cooMatrix->col_index[i];
+        u_int64_t row = cooMatrix->row_index[i];
+        u_int64_t col = cooMatrix->col_index[i];
         float val = cooMatrix->data[i];
-        int offset = Histogram_getElemAtIndex(elemInsertedForRow, row);
+        u_int64_t offset = Histogram_getElemAtIndex(elemInsertedForRow, row);
         if (offset == -1) {
             return NULL;
         }
-        int index = csrMatrix->row_pointer[row] + offset;
+        u_int64_t index = csrMatrix->row_pointer[row] + offset;
         csrMatrix->data[index] = val;
         csrMatrix->col_index[index] = col;
         Histogram_insert(elemInsertedForRow, row);

@@ -10,14 +10,15 @@
 #include <stdlib.h>
 #include <math.h>
 #include "mmio.h"
+#include "MTXParser.h"
 
 typedef struct COOMatrix {
     float *data;
-    int *col_index;
-    int *row_index;
-    int row_size;
-    int col_size;
-    int num_non_zero_elements;
+    u_int64_t *col_index;
+    u_int64_t *row_index;
+    u_int64_t row_size;
+    u_int64_t col_size;
+    u_int64_t num_non_zero_elements;
 } COOMatrix;
 
 // COOMatrix *COOMatrix_new(const float *Matrix, int rows, int cols);

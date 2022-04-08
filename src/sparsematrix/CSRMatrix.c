@@ -12,8 +12,8 @@ CSRMatrix *CSRMatrix_new(COOMatrix *cooMatrix) {
     csrMatrix->col_size = cooMatrix->col_size;
     csrMatrix->num_non_zero_elements = cooMatrix->num_non_zero_elements;
     csrMatrix->data = malloc(csrMatrix->num_non_zero_elements * sizeof(float ));
-    csrMatrix->col_index = malloc(csrMatrix->num_non_zero_elements * sizeof(int ));
-    csrMatrix->row_pointer = malloc((csrMatrix->row_size + 1) * sizeof (int ));
+    csrMatrix->col_index = malloc(csrMatrix->num_non_zero_elements * sizeof(u_int64_t));
+    csrMatrix->row_pointer = malloc((csrMatrix->row_size + 1) * sizeof (u_int64_t));
     Histogram *elemForRow = Histogram_new(csrMatrix->row_size);
 
     // mi calcolo prima la posizione in base alle righe, poi aggiungo il resto,
@@ -21,7 +21,7 @@ CSRMatrix *CSRMatrix_new(COOMatrix *cooMatrix) {
     for (int i = 0; i < csrMatrix->num_non_zero_elements; i++) {
         Histogram_insert(elemForRow, cooMatrix->row_index[i]);
     }
-    int count = 0;
+    u_int64_t count = 0;
     for (int i = 0; i < cooMatrix->row_size + 1; i++) {
         csrMatrix->row_pointer[i] = count;
         count += Histogram_getElemAtIndex(elemForRow, i);
@@ -31,14 +31,14 @@ CSRMatrix *CSRMatrix_new(COOMatrix *cooMatrix) {
      */
     Histogram *elemInsertedForRow = Histogram_new(csrMatrix->row_size);
     for (int i = 0; i < csrMatrix->num_non_zero_elements; i++) {
-        int row = cooMatrix->row_index[i];
-        int col = cooMatrix->col_index[i];
+        u_int64_t row = cooMatrix->row_index[i];
+        u_int64_t col = cooMatrix->col_index[i];
         float val = cooMatrix->data[i];
-        int offset = Histogram_getElemAtIndex(elemInsertedForRow, row);
+        u_int64_t offset = Histogram_getElemAtIndex(elemInsertedForRow, row);
         if (offset == -1) {
             return NULL;
         }
-        int index = csrMatrix->row_pointer[row] + offset;
+        u_int64_t index = csrMatrix->row_pointer[row] + offset;
         csrMatrix->data[index] = val;
         csrMatrix->col_index[index] = col;
         Histogram_insert(elemInsertedForRow, row);
@@ -60,21 +60,22 @@ void CSRMatrix_outAsJSON(CSRMatrix *matrix, FILE *out) {
     if (!out) out=stdout;
     if (!matrix) {
         fprintf(out, "{}");
+        return;
     }
     fprintf(out, "%s\n", "{ ");
-    fprintf(out, "%s: %d,\n", "\"row size\"",  matrix->row_size);
-    fprintf(out, "%s: %d,\n", "\"col size\"",  matrix->col_size);
-    fprintf(out, "%s: %d,\n", "\"num_non_zero_elements\"",  matrix->num_non_zero_elements);
+    fprintf(out, "%s: %lu,\n", "\"row size\"",  matrix->row_size);
+    fprintf(out, "%s: %lu,\n", "\"col size\"",  matrix->col_size);
+    fprintf(out, "%s: %lu,\n", "\"num_non_zero_elements\"",  matrix->num_non_zero_elements);
     fprintf(out, "%s: [ ", "\"row_pointer\"");
     for (int i=0; i < matrix->row_size; i++) {
-        fprintf(out, "%d, ", matrix->row_pointer[i]);
+        fprintf(out, "%lu, ", matrix->row_pointer[i]);
     }
-    fprintf(out, "%d ],\n", matrix->row_pointer[matrix->row_size]);
+    fprintf(out, "%lu ],\n", matrix->row_pointer[matrix->row_size]);
     fprintf(out, "%s: [ ", "\"col_index\"");
     for (int i=0; i < matrix->num_non_zero_elements - 1; i++) {
-        fprintf(out, "%d, ", matrix->col_index[i]);
+        fprintf(out, "%lu, ", matrix->col_index[i]);
     }
-    fprintf(out, "%d ],\n", matrix->col_index[matrix->num_non_zero_elements - 1]);
+    fprintf(out, "%lu ],\n", matrix->col_index[matrix->num_non_zero_elements - 1]);
     fprintf(out, "%s: [ ", "\"data\"");
     for (int i=0; i < matrix->num_non_zero_elements - 1; i++) {
         fprintf(out, "%f, ", matrix->data[i]);
@@ -83,5 +84,18 @@ void CSRMatrix_outAsJSON(CSRMatrix *matrix, FILE *out) {
     fprintf(out, "%s", "}");
 }
 
+void CSRMatrix_infoOutAsJSON(CSRMatrix *matrix, FILE *out) {
+    if (!out) out=stdout;
+    if (!matrix) {
+        fprintf(out, "{}");
+        return;
+    }
+    fprintf(out, "%s\n", "{ ");
+    fprintf(out, "%s: %lu,\n", "\"row size\"",  matrix->row_size);
+    fprintf(out, "%s: %lu,\n", "\"col size\"",  matrix->col_size);
+    fprintf(out, "%s: %lu,\n", "\"num_non_zero_elements\"",  matrix->num_non_zero_elements);
+    fprintf(out, "%s: %lf\n", "\"density\"",  ( ((double) matrix->num_non_zero_elements) / ((double) (matrix->row_size * matrix->col_size))));
+    fprintf(out, "%s", "}");
+}
 
 
