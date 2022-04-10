@@ -12,10 +12,11 @@ float TEST_MATRIX[4][4] = {11.0f, 12.0f, 0.0f, 0.0f,
                            0.0f, 0.0f, 33.0f, 0.0f,
                            0.0f, 0.0f, 43.0f, 44.0f};
 
-const char *PROGRAM_NAME = "spmvELL";
+const char *PROGRAM_NAME = "spmvELLOpenMP";
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
+        fprintf(stderr, "USAGE: %s file.mtx\n", PROGRAM_NAME);
         return 1;
     }
     MTXParser *mtxParser = MTXParser_new(argv[1]);

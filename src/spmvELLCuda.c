@@ -16,7 +16,8 @@ const char *PROGRAM_NAME = "spmvELL";
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
-        return 1;
+        fprintf(stderr, "USAGE: %s file.mtx\n", PROGRAM_NAME);
+        return EXIT_FAILURE;
     }
     MTXParser *mtxParser = MTXParser_new(argv[1]);
     if (!mtxParser) {

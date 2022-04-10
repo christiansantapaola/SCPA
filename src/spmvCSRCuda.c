@@ -19,6 +19,7 @@ const char *PROGRAM_NAME = "spmvCSR";
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
+        fprintf(stderr, "USAGE: %s file.mtx\n", PROGRAM_NAME);
         return 1;
     }
     MTXParser *mtxParser = MTXParser_new(argv[1]);
