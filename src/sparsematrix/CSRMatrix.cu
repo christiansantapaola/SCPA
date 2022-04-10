@@ -20,11 +20,11 @@ extern "C" CSRMatrix *CSRMatrix_pinned_memory_new(COOMatrix *cooMatrix) {
 
     // mi calcolo prima la posizione in base alle righe, poi aggiungo il resto,
     // questo perchè gli elementi in COO non devono essere ordinati.
-    for (int i = 0; i < csrMatrix->num_non_zero_elements; i++) {
+    for (u_int64_t i = 0; i < csrMatrix->num_non_zero_elements; i++) {
         Histogram_insert(elemForRow, cooMatrix->row_index[i]);
     }
-    int count = 0;
-    for (int i = 0; i < cooMatrix->row_size + 1; i++) {
+    u_int64_t count = 0;
+    for (u_int64_t i = 0; i < cooMatrix->row_size + 1; i++) {
         csrMatrix->row_pointer[i] = count;
         count += Histogram_getElemAtIndex(elemForRow, i);
     }
@@ -32,14 +32,11 @@ extern "C" CSRMatrix *CSRMatrix_pinned_memory_new(COOMatrix *cooMatrix) {
      * Qui uso un istogramma per salvarmi il numero di inserimenti alla riga i.
      */
     Histogram *elemInsertedForRow = Histogram_new(csrMatrix->row_size);
-    for (int i = 0; i < csrMatrix->num_non_zero_elements; i++) {
+    for (u_int64_t i = 0; i < csrMatrix->num_non_zero_elements; i++) {
         u_int64_t row = cooMatrix->row_index[i];
         u_int64_t col = cooMatrix->col_index[i];
         float val = cooMatrix->data[i];
-        u_int64_t offset = Histogram_getElemAtIndex(elemInsertedForRow, row);
-        if (offset == -1) {
-            return NULL;
-        }
+        int64_t offset = Histogram_getElemAtIndex(elemInsertedForRow, row);
         u_int64_t index = csrMatrix->row_pointer[row] + offset;
         csrMatrix->data[index] = val;
         csrMatrix->col_index[index] = col;

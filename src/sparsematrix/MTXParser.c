@@ -13,6 +13,7 @@ MTXParser *MTXParser_new(char *path) {
         return NULL;
     }
     mtxParser->currentLine = 0;
+    mtxParser->line = NULL;
     mtxParser->invalidToken = NULL;
     return mtxParser;
 }
@@ -91,7 +92,6 @@ COOMatrix *MTXParser_parse(MTXParser *parser) {
         int res = MTXParser_parseLine(parser, &matrix->col_index[i], &matrix->row_index[i], &matrix->data[i]);
         if (res == -1) {
             fprintf(stderr, "[CRITICAL FAIL] cannot parse file %s at line %u\n%s is invalid!\n %s unrecognized\n", parser->filename, parser->currentLine, parser->line, parser->invalidToken);
-            free(parser->line);
             exit(EXIT_FAILURE);
         }
         /* adjust from 1-based to 0-based */

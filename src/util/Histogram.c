@@ -32,11 +32,7 @@ void Histogram_insert(Histogram *histogram, u_int64_t i) {
 }
 
 u_int64_t Histogram_getElemAtIndex(Histogram *histogram, u_int64_t i) {
-    if (i < histogram->size) {
-        return histogram->hist[i].first;
-    } else {
-        return -1;
-    }
+    return histogram->hist[i].first;
 }
 
 void Histogram_outAsJSON(Histogram *histogram, FILE *out) {
