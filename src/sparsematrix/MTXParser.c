@@ -140,12 +140,13 @@ size_t parseToken(char **token, size_t numToken, u_int64_t *row, u_int64_t *col,
     consumedToken++;
     if (consumedToken == numToken) {
         *data = 1.0f;
-    } else {
+    } else if (numToken == 3) {
         *data = strtof(token[2], &endptr);
         if (endptr != NULL && *endptr != '\n') {
             return 3;
         }
-        consumedToken++;
+    } else {
+        return 2;
     }
     return 0;
 }
