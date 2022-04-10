@@ -20,14 +20,14 @@ set(CMAKE_CUDA_ARCHITECTURES 52 75)
 add_executable(readCOO
         src/readCOOMatrix.c
         src/sparsematrix/COOMatrix.c
-        src/util/MTXParser.c
+        src/sparsematrix/MTXParser.c
         lib/mmio/src/mmio.c)
 
 add_executable(readCSR
         src/readCSRMatrix.c
         src/sparsematrix/CSRMatrix.c
         src/sparsematrix/COOMatrix.c
-        src/util/MTXParser.c
+        src/sparsematrix/MTXParser.c
         lib/mmio/src/mmio.c
         src/util/Histogram.c)
 
@@ -36,7 +36,7 @@ add_executable(readELL
         src/sparsematrix/CSRMatrix.c
         src/sparsematrix/COOMatrix.c
         src/sparsematrix/ELLMatrix.c
-        src/util/MTXParser.c
+        src/sparsematrix/MTXParser.c
         lib/mmio/src/mmio.c
         src/util/Histogram.c
 )
@@ -49,7 +49,7 @@ add_executable(spmvCSR
         src/sparsematrix/Vector.c
         src/sparsematrix/Vector.cu
         src/spmv/SpMV_CSR.cu
-        src/util/MTXParser.c
+        src/sparsematrix/MTXParser.c
         lib/mmio/src/mmio.c
         src/util/Histogram.c
         src/util/cudaUtils.cu
@@ -69,7 +69,7 @@ add_executable(spmvELL
         src/sparsematrix/COOMatrix.c
         src/sparsematrix/Vector.c
         src/sparsematrix/Vector.cu
-        src/util/MTXParser.c
+        src/sparsematrix/MTXParser.c
         lib/mmio/src/mmio.c
         src/util/Histogram.c
         src/util/cudaUtils.cu
@@ -88,7 +88,7 @@ add_executable(spmvELLOpenMP
         src/sparsematrix/CSRMatrix.c
         src/sparsematrix/COOMatrix.c
         src/sparsematrix/Vector.c
-        src/util/MTXParser.c
+        src/sparsematrix/MTXParser.c
         lib/mmio/src/mmio.c
         src/util/Histogram.c
         src/spmv/SpMVResult.c
@@ -104,7 +104,7 @@ add_executable(spmvCSROpenMP
         src/sparsematrix/CSRMatrix.c
         src/sparsematrix/COOMatrix.c
         src/sparsematrix/Vector.c
-        src/util/MTXParser.c
+        src/sparsematrix/MTXParser.c
         lib/mmio/src/mmio.c
         src/util/Histogram.c
         src/spmv/SpMVResult.c

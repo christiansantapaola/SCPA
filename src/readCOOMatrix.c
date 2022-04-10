@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "MTXParser.h"
 #include "COOMatrix.h"
 
 const char *PROGRAM_NAME = "readCOO";
@@ -13,22 +14,20 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "USAGE: %s file.mtx\n", PROGRAM_NAME);
         return EXIT_FAILURE;
     }
-    FILE *mtx = fopen(argv[1], "r");
-    if (!mtx) {
-        perror("fopen() failed");
-        return EXIT_FAILURE;
+    MTXParser *mtxParser = MTXParser_new(argv[1]);
+    if (!mtxParser) {
+        perror("MTXParser_new()");
+        exit(EXIT_FAILURE);
     }
-    COOMatrix *cooMatrix = COOMatrix_new(mtx);
+    COOMatrix *cooMatrix = MTXParser_parse(mtxParser);
     if (!cooMatrix) {
-        perror("newCOOMatrix() failed");
-        fclose(mtx);
+        perror("MTXParser_parse():");
+        MTXParser_free(mtxParser);
         return EXIT_FAILURE;
-    }
-    if (mtx != stdin) {
-        fclose(mtx);
     }
     COOMatrix_outAsJSON(cooMatrix, stdout);
     putc('\n', stdout);
     COOMatrix_free(cooMatrix);
+    MTXParser_free(mtxParser);
     return EXIT_SUCCESS;
 }

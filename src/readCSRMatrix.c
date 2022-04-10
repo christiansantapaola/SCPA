@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include "COOMatrix.h"
 #include "CSRMatrix.h"
-
+#include "MTXParser.h"
 const char *PROGRAM_NAME = "readCSR";
 
 int main(int argc, char *argv[]) {
@@ -14,14 +14,16 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "USAGE: %s file.mtx\n", PROGRAM_NAME);
         return EXIT_FAILURE;
     }
-    FILE *file = fopen(argv[1], "r");
-    if (!file) {
-        perror("fopen()");
-        return 1;
+    MTXParser *mtxParser = MTXParser_new(argv[1]);
+    if (!mtxParser) {
+        perror("MTXParser_new()");
+        exit(EXIT_FAILURE);
     }
-    COOMatrix *cooMatrix = COOMatrix_new(file);
-    if (file != stdin) {
-        fclose(file);
+    COOMatrix *cooMatrix = MTXParser_parse(mtxParser);
+    if (!cooMatrix) {
+        perror("MTXParser_parse():");
+        MTXParser_free(mtxParser);
+        return EXIT_FAILURE;
     }
     CSRMatrix *csrMatrix = CSRMatrix_new(cooMatrix);
     CSRMatrix_outAsJSON(csrMatrix, stdout);

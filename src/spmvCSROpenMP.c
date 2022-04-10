@@ -3,7 +3,7 @@
 //
 
 #include <stdio.h>
-
+#include "MTXParser.h"
 #include "COOMatrix.h"
 #include "CSRMatrix.h"
 #include "ELLMatrix.h"
@@ -26,10 +26,16 @@ int main(int argc, char *argv[]) {
         perror("fopen()");
         return 1;
     }
-    // COOMatrix cooMatrix = COOMatrix((float*)TEST_MATRIX, 4, 4);
-    COOMatrix *cooMatrix = COOMatrix_new(file);
-    if (file != stdin) {
-        fclose(file);
+    MTXParser *mtxParser = MTXParser_new(argv[1]);
+    if (!mtxParser) {
+        perror("MTXParser_new()");
+        exit(EXIT_FAILURE);
+    }
+    COOMatrix *cooMatrix = MTXParser_parse(mtxParser);
+    if (!cooMatrix) {
+        perror("MTXParser_parse():");
+        MTXParser_free(mtxParser);
+        return EXIT_FAILURE;
     }
     CSRMatrix *csrMatrix = CSRMatrix_new(cooMatrix);
     Vector* X = Vector_new(csrMatrix->col_size);

@@ -9,8 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 #include "mmio.h"
-#include "MTXParser.h"
 
 typedef struct COOMatrix {
     float *data;
