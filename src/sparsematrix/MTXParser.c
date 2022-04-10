@@ -161,7 +161,6 @@ int MTXParser_parseLine(MTXParser *mtxParser, u_int64_t *row, u_int64_t *col, fl
     if (read == -1) {
         return -1;
     }
-    fprintf(stderr, "%s\n", line);
     free(mtxParser->line);
     mtxParser->line = strdup(line);
     token = tokenize(line, " ", tok, 3);
