@@ -20,6 +20,6 @@ typedef struct MTXParser {
 MTXParser *MTXParser_new(char *filename);
 void MTXParser_free(MTXParser *mtxParser);
 COOMatrix *MTXParser_parse(MTXParser *mtxParser);
-int MTXParser_parseLine(MTXParser *parserStatus, u_int64_t *row, u_int64_t *col, float * data);
+int MTXParser_parseLine(MTXParser *mtxParser, u_int64_t *row, u_int64_t *col, float * data);
 
 #endif //SPARSEMATRIX_MTXPARSER_H

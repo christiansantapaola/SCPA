@@ -106,19 +106,15 @@ COOMatrix *MTXParser_parse(MTXParser *parser) {
 size_t tokenize(char *inputString, const char *delim, char **argv, size_t maxtokens)
 {
     size_t ntokens = 0;
-    //char *tokenized = strdup(inputString);
-    char *tokenized = inputString;
-    if(tokenized)
-    {
+    char *tokenized = strdup(inputString);
+    //char *tokenized = inputString;
+    if(tokenized) {
         argv[0] = tokenized;
-        while(*tokenized)
-        {
-            if(strchr(delim, *tokenized))
-            {
+        while(*tokenized) {
+            if(strchr(delim, *tokenized)) {
                 *tokenized = 0;
                 ntokens++;
-                if(ntokens == maxtokens - 1)
-                {
+                if(ntokens == maxtokens) {
                     break;
                 }
                 argv[ntokens] = tokenized + 1;
@@ -146,7 +142,7 @@ size_t parseToken(char **token, size_t numToken, u_int64_t *row, u_int64_t *col,
         *data = 1.0f;
     } else {
         *data = strtof(token[2], &endptr);
-        if (endptr != NULL) {
+        if (endptr != NULL && *endptr != '\n') {
             return 3;
         }
         consumedToken++;
@@ -154,19 +150,20 @@ size_t parseToken(char **token, size_t numToken, u_int64_t *row, u_int64_t *col,
     return 0;
 }
 
-int MTXParser_parseLine(MTXParser *mtxParserStatus, u_int64_t *row, u_int64_t *col, float * data) {
-    if (!mtxParserStatus || !row || !col || !data) return 0;
+int MTXParser_parseLine(MTXParser *mtxParser, u_int64_t *row, u_int64_t *col, float * data) {
+    if (!mtxParser || !row || !col || !data) return 0;
     char * line = NULL;
     size_t len = 0, token = 0;
     ssize_t read = 0;
     char *tok[3] = {NULL, NULL, NULL};
-    mtxParserStatus->currentLine++;
-    read = getline(&line, &len, mtxParserStatus->file);
+    mtxParser->currentLine++;
+    read = getline(&line, &len, mtxParser->file);
     if (read == -1) {
         return -1;
     }
-    free(mtxParserStatus->line);
-    mtxParserStatus->line = strdup(line);
+    fprintf(stderr, "%s\n", line);
+    free(mtxParser->line);
+    mtxParser->line = strdup(line);
     token = tokenize(line, " ", tok, 3);
     if (token == 0) {
         free(line);
@@ -174,7 +171,7 @@ int MTXParser_parseLine(MTXParser *mtxParserStatus, u_int64_t *row, u_int64_t *c
     }
     token = parseToken(tok, token, row, col, data);
     if (token != 0) {
-        mtxParserStatus->invalidToken = strdup(tok[token - 1]);
+        mtxParser->invalidToken = strdup(tok[token - 1]);
         free(line);
         return -1;
     }
