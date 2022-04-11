@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
     fprintf(out, "{\n");
-    while ((entry=readdir(dir) != NULL)) {
+    while ((entry = readdir(dir)) != NULL) {
         if (entry->d_type != DT_REG) {
             continue;
         }
