@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
     }
     int numDir = count_directory(argv[1]) - 2;
     struct dirent *entry;
-    FILE *out = (argc >= 3) ? fopen(argv[2], "rw+") : stdout;
+    FILE *out = (argc >= 3) ? fopen(argv[2], "wb+") : stdout;
     if (!out) {
         perror(argv[2]);
         closedir(dir);
