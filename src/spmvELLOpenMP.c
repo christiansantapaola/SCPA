@@ -45,15 +45,11 @@ int main(int argc, char *argv[]) {
     int success = Vector_equals(Y, Z);
     fprintf(stdout, "{\n");
     fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
-    if (!success) {
-        fprintf(stdout, "Y: ");
-        Vector_outAsJSON(Y, stdout);
-        putc(',', stdout);
-        putc('\n', stdout);
-        fprintf(stdout, "Z: ");
-        Vector_outAsJSON(Z, stdout);
-    } else {
-        fprintf(stdout, "\"CPUresult\": ");
+    fprintf(stdout, "\"MatrixInfo\": ");
+    ELLMatrix_infoOutAsJSON(ellMatrix, stdout);
+    if (success) {
+        fprintf(stdout, ",\n");
+        fprintf(stdout, "\"CPUResult\": ");
         SpMVResultCPU_outAsJSON(&cpuResult, stdout);
         fprintf(stdout, ",\n");
         fprintf(stdout, "\"OpenMPResult\": ");

@@ -65,12 +65,14 @@ int main(int argc, char *argv[]) {
     fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
     fprintf(stdout, "\"MatrixInfo\": ");
     CSRMatrix_infoOutAsJSON(csrMatrix, stdout);
-    fprintf(stdout, ",\n");
-    fprintf(stdout, "\"CPUresult\": ");
-    SpMVResultCPU_outAsJSON(&cpuResult, stdout);
-    fprintf(stdout, ",\n");
-    fprintf(stdout, "\"GPUresult\": ");
-    SpMVResultCUDA_outAsJSON(&gpuResult, stdout);
+    if (success) {
+        fprintf(stdout, ",\n");
+        fprintf(stdout, "\"CPUresult\": ");
+        SpMVResultCPU_outAsJSON(&cpuResult, stdout);
+        fprintf(stdout, ",\n");
+        fprintf(stdout, "\"GPUresult\": ");
+        SpMVResultCUDA_outAsJSON(&gpuResult, stdout);
+    }
     fprintf(stdout, "\n}\n");
     Vector_pinned_memory_free(Z);
     Vector_free(Y);

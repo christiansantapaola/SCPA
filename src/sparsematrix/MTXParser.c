@@ -1,6 +1,10 @@
 #include "MTXParser.h"
 
-
+/**
+ *
+ * @param path: path to the mtx file to parse
+ * @return a new instance of the MTXParser struct allocated on the heap
+ */
 MTXParser *MTXParser_new(char *path) {
     if (!path) return NULL;
     MTXParser *mtxParser = malloc(sizeof(*mtxParser));
@@ -18,15 +22,25 @@ MTXParser *MTXParser_new(char *path) {
     return mtxParser;
 }
 
-void MTXParser_free(MTXParser *mtxParserStatus) {
-    if (!mtxParserStatus) return;
-    free(mtxParserStatus->filename);
-    free(mtxParserStatus->line);
-    free(mtxParserStatus->invalidToken);
-    fclose(mtxParserStatus->file);
-    free(mtxParserStatus);
+/**
+ *
+ * @param mtxParser: instance of the mtxParser struct to free.
+ */
+void MTXParser_free(MTXParser *mtxParser) {
+    if (!mtxParser) return;
+    free(mtxParser->filename);
+    free(mtxParser->line);
+    free(mtxParser->invalidToken);
+    fclose(mtxParser->file);
+    free(mtxParser);
 }
 
+
+/**
+ *
+ * @param parser: instance of the mtxParser
+ * @return the content of the mtx file stored in a COO sparse matrix format.
+ */
 COOMatrix *MTXParser_parse(MTXParser *parser) {
     int ret_code;
     MM_typecode matcode;
@@ -102,7 +116,15 @@ COOMatrix *MTXParser_parse(MTXParser *parser) {
 
 }
 
-// tokenize split the inputstring using delim as delimitator, and put up to maxtokens splitted string in argv.
+/**
+ * tokenize() will split the inputstring into token delimited by delim and put them into argv,
+ * maxtokens indicated the max number of token to split.
+ * @param inputString: string to tokenize
+ * @param delim : the token to split.
+ * @param argv : where the token are put.
+ * @param maxtokens : the max number of token to extract from inputString.
+ * @return the number of token put in argv.
+ */
 size_t tokenize(char *inputString, const char *delim, char **argv, size_t maxtokens)
 {
     size_t ntokens = 0;
@@ -125,6 +147,16 @@ size_t tokenize(char *inputString, const char *delim, char **argv, size_t maxtok
     return ntokens + 1;
 }
 
+
+/**
+ * parseToken() will parse the token into the appropriate value.
+ * @param token: array containing the token.
+ * @param numToken: the number of token in input
+ * @param row: where the row value should be stored, can't be NULL.
+ * @param col: where the column value should be stored, can't be NULL.
+ * @param data: where the element at pos (row, col) value should be stored, can't be NULL.
+ * @return 0 if successfull, the index of the token that cannot be parsed + 1 if fail.
+ */
 size_t parseToken(char **token, size_t numToken, u_int64_t *row, u_int64_t *col, float * data) {
     char *endptr = NULL;
     int consumedToken = 0;
@@ -151,6 +183,14 @@ size_t parseToken(char **token, size_t numToken, u_int64_t *row, u_int64_t *col,
     return 0;
 }
 
+/**
+ * MTXParser_parseLine() will parse a line of the mtx data file.
+ * @param mtxParser: istance of the MTXParser
+ * @param row: where the row value should be stored, can't be NULL.
+ * @param col: where the column value should be stored, can't be NULL.
+ * @param data: where the element at pos (row, col) value should be stored, can't be NULL.
+ * @return 0 if successfull, -1 if fail.
+ */
 int MTXParser_parseLine(MTXParser *mtxParser, u_int64_t *row, u_int64_t *col, float * data) {
     if (!mtxParser || !row || !col || !data) return 0;
     char * line = NULL;

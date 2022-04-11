@@ -2,7 +2,7 @@
 #include <omp.h>
 
 void CSRMatrix_SpMV_OPENMP(const CSRMatrix *matrix,const Vector *x, Vector *y, SpMVResultCPU *result) {
-    clock_t start, end;
+    double start, end;
     if (!matrix || !x || !y) {
         if (result) {
             result->success = 0;
@@ -18,8 +18,8 @@ void CSRMatrix_SpMV_OPENMP(const CSRMatrix *matrix,const Vector *x, Vector *y, S
     if (result) {
         memset(result, 0, sizeof(*result));
     }
-    start = clock();
-#pragma omp parallel for schedule(dynamic) default(none) shared(matrix, x, y)
+    start = omp_get_wtime();
+#pragma omp parallel for schedule(dynamic, 128) default(none) shared(matrix, x, y)
     for (int row = 0; row < matrix->row_size; row++) {
         float dot = 0.0f;
         int row_start = matrix->row_pointer[row];
@@ -29,9 +29,9 @@ void CSRMatrix_SpMV_OPENMP(const CSRMatrix *matrix,const Vector *x, Vector *y, S
         }
         y->data[row] += dot;
     }
-    end = clock();
+    end = omp_get_wtime();
     if (result) {
         result->success = 1;
-        result->timeElapsed = ((float) (end - start)) / CLOCKS_PER_SEC * 1000.0f;
+        result->timeElapsed = (end - start) * 1000.0;
     }
 }

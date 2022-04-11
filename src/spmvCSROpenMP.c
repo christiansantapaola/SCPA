@@ -52,12 +52,17 @@ int main(int argc, char *argv[]) {
     int success = Vector_equals(Y, Z);
     fprintf(stdout, "{\n");
     fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
-    fprintf(stdout, "\"CPUresult\": ");
-    SpMVResultCPU_outAsJSON(&cpuResult, stdout);
-    fprintf(stdout, ",\n");
-    fprintf(stdout, "\"openMPResult\": ");
-    SpMVResultCPU_outAsJSON(&openMPResult, stdout);
-    fprintf(stdout, "\n}\n");
+    fprintf(stdout, "\"MatrixInfo\": ");
+    CSRMatrix_infoOutAsJSON(csrMatrix, stdout);
+    if (success) {
+        fprintf(stdout, ",\n");
+        fprintf(stdout, "\"CPUResult\": ");
+        SpMVResultCPU_outAsJSON(&cpuResult, stdout);
+        fprintf(stdout, ",\n");
+        fprintf(stdout, "\"openMPResult\": ");
+        SpMVResultCPU_outAsJSON(&openMPResult, stdout);
+        fprintf(stdout, "\n}\n");
+    }
     Vector_free(Z);
     Vector_free(Y);
     Vector_free(X);
