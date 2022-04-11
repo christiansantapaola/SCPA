@@ -69,7 +69,7 @@ void CSRMatrix_SpMV_GPU(const CSRMatrix *matrix, const Vector *x, Vector *y, SpM
     memoryUsed = (matrix->num_non_zero_elements + x->size + y->size) * sizeof(float) +   sizeof(u_int64_t) * (matrix->row_size + 1 + matrix->num_non_zero_elements);
     int bestDev = CudaUtils_getBestDevice();
     CudaUtils_setDevice(bestDev);
-    cudaDeviceProp prop = {0};
+    cudaDeviceProp prop;
     BlockGridInfo blockGridInfo;
     CudaUtils_getDeviceProp(bestDev, &prop);
     CudaUtils_getBestCudaParameters(matrix->row_size, &prop, &blockGridInfo);
