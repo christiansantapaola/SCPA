@@ -32,6 +32,5 @@ void SpMVResultCPU_outAsJSON(SpMVResultCPU *result, FILE *out) {
     fprintf(out, "%s\n", "{ ");
     fprintf(out, "%s: %s,\n", "\"success\"",  ((result->success) ? "true" : "false"));
     fprintf(out, "%s: %f\n", "\"timeElapsed\"", result->timeElapsed);
-    fprintf(out, "\n");
     fprintf(out, "%s", "}");
 }

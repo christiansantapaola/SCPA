@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <dirent.h>
-#include<string.h>
-#include<stdlib.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include "MTXParser.h"
 #include "COOMatrix.h"
 #include "Vector.h"
@@ -30,7 +31,8 @@ int main(int argc, char *argv[]) {
         closedir(dir);
         return EXIT_FAILURE;
     }
-    fprintf(out, "{\n");
+    fprintf(out, "{ \"ELLResult\": [\n");
+    chdir(argv[1]);
     while ((entry = readdir(dir)) != NULL) {
         if (entry->d_type != DT_REG) {
             continue;
@@ -64,7 +66,7 @@ int main(int argc, char *argv[]) {
         int successGPU = Vector_equals(Y, Z);
         int successOpenMP = Vector_equals(Z, U);
         fprintf(out, "{\n");
-        fprintf(out, "\"matrix: \" %s,\n", entry->d_name);
+        fprintf(out, "\"matrix\": \"%s\",\n", entry->d_name);
         fprintf(out, "\"successGPU\": %s,\n", (successGPU) ? "true" : "false");
         fprintf(out, "\"successOpenMP\": %s,\n", (successOpenMP) ? "true" : "false");
         fprintf(out, "\"MatrixInfo\": ");
@@ -87,6 +89,6 @@ int main(int argc, char *argv[]) {
         COOMatrix_free(cooMatrix);
         MTXParser_free(mtxParser);
     }
-    fprintf(out, "{}\n}\n");
+    fprintf(out, "{}\n]}\n");
     return EXIT_SUCCESS;
 }

@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <dirent.h>
-#include<string.h>
-#include<stdlib.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include "MTXParser.h"
 #include "COOMatrix.h"
 #include "Vector.h"
@@ -28,14 +29,22 @@ int main(int argc, char *argv[]) {
         closedir(dir);
         return EXIT_FAILURE;
     }
-    fprintf(out, "{\n");
+    fprintf(out, "{ \"CSRResult\": [\n");
+    char absolutePath [PATH_MAX+1];
+    chdir(argv[1]);
     while ((entry = readdir(dir)) != NULL) {
         if (entry->d_type != DT_REG) {
             continue;
         }
-        MTXParser *mtxParser = MTXParser_new(entry->d_name);
+        memset(absolutePath, 0, PATH_MAX + 1);
+        char *ptr = realpath(entry->d_name, absolutePath);
+        if (!ptr) {
+            perror(entry->d_name);
+            exit(EXIT_FAILURE);
+        }
+        MTXParser *mtxParser = MTXParser_new(absolutePath);
         if (!mtxParser) {
-            fprintf(stderr, "MTXParser_new(%p) failed\n", entry->d_name);
+            fprintf(stderr, "MTXParser_new(\"%s\") failed\n", entry->d_name);
             exit(EXIT_FAILURE);
         }
         COOMatrix *cooMatrix = MTXParser_parse(mtxParser);
@@ -61,6 +70,7 @@ int main(int argc, char *argv[]) {
         int successGPU = Vector_equals(Z, Y);
         int successOpenMP = Vector_equals(Z, U);
         fprintf(out, "{\n");
+        fprintf(out, "\"matrix\": \"%s\",\n", entry->d_name);
         fprintf(out, "\"successGPU\": %s,\n", (successGPU) ? "true" : "false");
         fprintf(out, "\"successOpenMP\": %s,\n", (successOpenMP) ? "true" : "false");
         fprintf(out, "\"MatrixInfo\": ");
@@ -82,6 +92,6 @@ int main(int argc, char *argv[]) {
         COOMatrix_free(cooMatrix);
         MTXParser_free(mtxParser);
     }
-    fprintf(out, "{}\n}\n");
+    fprintf(out, "{}\n]}\n");
     return EXIT_SUCCESS;
 }
