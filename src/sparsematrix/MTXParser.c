@@ -35,6 +35,35 @@ void MTXParser_free(MTXParser *mtxParser) {
     free(mtxParser);
 }
 
+int MTXParser_read_mtx_crd_size(FILE *f, u_int64_t *M, u_int64_t *N, u_int64_t *nz )
+{
+    char line[MM_MAX_LINE_LENGTH];
+    int num_items_read;
+
+    /* set return null parameter values, in case we exit with errors */
+    *M = *N = *nz = 0;
+
+    /* now continue scanning until you reach the end-of-comments */
+    do
+    {
+        if (fgets(line,MM_MAX_LINE_LENGTH,f) == NULL)
+            return MM_PREMATURE_EOF;
+    }while (line[0] == '%');
+
+    /* line[] is either blank or has M,N, nz */
+    if (sscanf(line, "%lu %lu %lu", M, N, nz) == 3)
+        return 0;
+
+    else
+        do
+        {
+            num_items_read = fscanf(f, "%lu %lu %lu", M, N, nz);
+            if (num_items_read == EOF) return MM_PREMATURE_EOF;
+        }
+        while (num_items_read != 3);
+
+    return 0;
+}
 
 /**
  *
@@ -44,9 +73,7 @@ void MTXParser_free(MTXParser *mtxParser) {
 COOMatrix *MTXParser_parse(MTXParser *parser) {
     int ret_code;
     MM_typecode matcode;
-    int M, N, nz;
-    u_int64_t i, *I, *J;
-    double *val;
+    u_int64_t M, N, nz;
     COOMatrix *matrix = NULL;
 
     if (mm_read_banner(parser->file, &matcode) != 0) {
@@ -66,7 +93,7 @@ COOMatrix *MTXParser_parse(MTXParser *parser) {
 
     /* find out size of sparse matrix .... */
 
-    if ((ret_code = mm_read_mtx_crd_size(parser->file, &M, &N, &nz)) !=0) {
+    if ((ret_code = MTXParser_read_mtx_crd_size(parser->file, &M, &N, &nz)) !=0) {
         exit(1);
     }
 
@@ -102,7 +129,7 @@ COOMatrix *MTXParser_parse(MTXParser *parser) {
         return NULL;
     }
 
-    for (i=0; i < nz ; i++) {
+    for (u_int64_t i=0; i < nz ; i++) {
         int res = MTXParser_parseLine(parser, &matrix->col_index[i], &matrix->row_index[i], &matrix->data[i]);
         if (res == -1) {
             fprintf(stderr, "[CRITICAL FAIL] cannot parse file %s at line %u\n%s is invalid!\n %s unrecognized\n", parser->filename, parser->currentLine, parser->line, parser->invalidToken);
@@ -157,20 +184,17 @@ size_t tokenize(char *inputString, const char *delim, char **argv, size_t maxtok
  * @param data: where the element at pos (row, col) value should be stored, can't be NULL.
  * @return 0 if successfull, the index of the token that cannot be parsed + 1 if fail.
  */
-size_t parseToken(char **token, size_t numToken, u_int64_t *row, u_int64_t *col, float * data) {
+size_t parseToken(char **token, u_int64_t numToken, u_int64_t *row, u_int64_t *col, float * data) {
     char *endptr = NULL;
-    int consumedToken = 0;
     *row = strtoll(token[0], &endptr, 10);
     if (!endptr) {
             return 1;
     }
-    consumedToken++;
     *col = strtoll(token[1], &endptr, 10);
     if (!endptr) {
         return 2;
     }
-    consumedToken++;
-    if (consumedToken == numToken) {
+    if (numToken == 2) {
         *data = 1.0f;
     } else if (numToken == 3) {
         *data = strtof(token[2], &endptr);

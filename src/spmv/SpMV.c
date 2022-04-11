@@ -18,7 +18,7 @@ void CSRMatrix_SpMV_CPU(const CSRMatrix *matrix,const Vector *x, Vector *y, SpMV
         memset(result, 0, sizeof(*result));
     }
     start = clock();
-    for (int row = 0; row < matrix->row_size; row++) {
+    for (u_int64_t row = 0; row < matrix->row_size; row++) {
         float dot = 0.0f;
         int row_start = matrix->row_pointer[row];
         int row_end = matrix->row_pointer[row + 1];
@@ -55,10 +55,10 @@ void ELLMatrix_SpMV_CPU(const ELLMatrix *matrix,const Vector *x, Vector *y, SpMV
     }
 
     start = clock();
-    for (int row = 0; row < matrix->row_size; row++) {
+    for (u_int64_t row = 0; row < matrix->row_size; row++) {
         float dot = 0.0f;
-        for (int i = 0; i < matrix->num_elem; i++) {
-            int index = row * matrix->num_elem + i;
+        for (u_int64_t i = 0; i < matrix->num_elem; i++) {
+            u_int64_t index = row * matrix->num_elem + i;
             dot += matrix->data[index] * x->data[matrix->col_index[index]];
             //fprintf(stderr, "thread: %d/%d, row: %u, dot: %f, matrix->data[%u]: %f\n", 0,0, row, dot, index, matrix->data[index]);
         }

@@ -11,7 +11,7 @@ Histogram *Histogram_new(u_int64_t size) {
     }
     histogram->size = size;
     histogram->hist = malloc(size * sizeof(struct Pair));
-    for (int i = 0; i < size; i++) {
+    for (u_int64_t i = 0; i < size; i++) {
         histogram->hist[i].first = 0;
         histogram->hist[i].second = i;
     }
@@ -32,6 +32,9 @@ void Histogram_insert(Histogram *histogram, u_int64_t i) {
 }
 
 u_int64_t Histogram_getElemAtIndex(Histogram *histogram, u_int64_t i) {
+    if (i > histogram->size) {
+        return 0;
+    }
     return histogram->hist[i].first;
 }
 
@@ -39,7 +42,7 @@ void Histogram_outAsJSON(Histogram *histogram, FILE *out) {
     fprintf(out, "%s\n", "{ ");
     fprintf(out, "%s: %lu,\n", "\"size\"",  histogram->size);
     fprintf(out, "%s: [ ", "\"hist\"");
-    for (int i=0; i < histogram->size - 1; i++) {
+    for (u_int64_t i=0; i < histogram->size - 1; i++) {
         fprintf(out, "{%lu, %lu}, ", histogram->hist[i].first, histogram->hist[i].second);
     }
     fprintf(out, "{%lu, %lu} ],\n", histogram->hist[histogram->size - 1].first, histogram->hist[histogram->size - 1].second);

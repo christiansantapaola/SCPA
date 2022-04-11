@@ -14,9 +14,9 @@ extern "C" ELLMatrix *ELLMatrix_pinned_memory_new(CSRMatrix *csrMatrix) {
     ellMatrix->num_non_zero_elements = csrMatrix->num_non_zero_elements;
 
     // find the the maximum number of non zero elements in a row.
-    int max_num_nz_elem = 0;
-    for (int row = 0; row < csrMatrix->row_size; row++) {
-        int num_nz_elem_curr_row = csrMatrix->row_pointer[row + 1] - csrMatrix->row_pointer[row];
+    u_int64_t max_num_nz_elem = 0;
+    for (u_int64_t row = 0; row < csrMatrix->row_size; row++) {
+        u_int64_t num_nz_elem_curr_row = csrMatrix->row_pointer[row + 1] - csrMatrix->row_pointer[row];
         if (max_num_nz_elem < num_nz_elem_curr_row) {
             max_num_nz_elem = num_nz_elem_curr_row;
         }
@@ -30,11 +30,11 @@ extern "C" ELLMatrix *ELLMatrix_pinned_memory_new(CSRMatrix *csrMatrix) {
     // add padding;
     memset(ellMatrix->data, 0, ellMatrix->data_size * sizeof(float));
     memset(ellMatrix->col_index, 0, ellMatrix->data_size * sizeof(u_int64_t));
-    for (int row = 0; row < ellMatrix->row_size; row++) {
-        int row_start = csrMatrix->row_pointer[row];
-        int num_nz_elem = csrMatrix->row_pointer[row + 1] - row_start;
-        for (int i = 0; i < num_nz_elem; i++) {
-            int index = row * ellMatrix->num_elem + i;
+    for (u_int64_t row = 0; row < ellMatrix->row_size; row++) {
+        u_int64_t row_start = csrMatrix->row_pointer[row];
+        u_int64_t num_nz_elem = csrMatrix->row_pointer[row + 1] - row_start;
+        for (u_int64_t i = 0; i < num_nz_elem; i++) {
+            u_int64_t index = row * ellMatrix->num_elem + i;
             ellMatrix->data[index] = csrMatrix->data[row_start + i];
             ellMatrix->col_index[index] = csrMatrix->col_index[row_start + i];
         }

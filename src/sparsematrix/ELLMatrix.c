@@ -6,7 +6,7 @@
 #include <omp.h>
 
 void transposef(float *restrict dest, const float *restrict src, u_int64_t num_row, u_int64_t num_col) {
-#pragma omp parallel for schedule(dynamic, 256) shared(num_row, num_col, dest, src) default(none)
+#pragma omp parallel for schedule(auto) shared(num_row, num_col, dest, src) default(none)
     for (size_t row = 0; row < num_row; row++) {
         for (size_t col = 0; col < num_col; col++) {
             size_t srcIdx = row * num_col + col;
@@ -17,7 +17,7 @@ void transposef(float *restrict dest, const float *restrict src, u_int64_t num_r
 }
 
 void transpose_u_int64_t(u_int64_t *restrict dest, const u_int64_t *restrict src, u_int64_t num_row, u_int64_t num_col) {
-#pragma omp parallel for schedule(dynamic, 256) shared(num_row, num_col, dest, src) default(none)
+#pragma omp parallel for schedule(auto) shared(num_row, num_col, dest, src) default(none)
     for (size_t row = 0; row < num_row; row++) {
         for (size_t col = 0; col < num_col; col++) {
             size_t srcIdx = row * num_col + col;
@@ -36,9 +36,9 @@ ELLMatrix *ELLMatrix_new(CSRMatrix *csrMatrix) {
     ellMatrix->num_non_zero_elements = csrMatrix->num_non_zero_elements;
 
     // find the the maximum number of non zero elements in a row.
-    unsigned int max_num_nz_elem = 0;
-    for (unsigned int row = 0; row < csrMatrix->row_size; row++) {
-        unsigned int num_nz_elem_curr_row = csrMatrix->row_pointer[row + 1] - csrMatrix->row_pointer[row];
+    u_int64_t max_num_nz_elem = 0;
+    for (u_int64_t row = 0; row < csrMatrix->row_size; row++) {
+        u_int64_t num_nz_elem_curr_row = csrMatrix->row_pointer[row + 1] - csrMatrix->row_pointer[row];
         if (max_num_nz_elem < num_nz_elem_curr_row) {
             max_num_nz_elem = num_nz_elem_curr_row;
         }
@@ -52,11 +52,11 @@ ELLMatrix *ELLMatrix_new(CSRMatrix *csrMatrix) {
     // add padding;
     memset(ellMatrix->data, 0, ellMatrix->data_size * sizeof(float));
     memset(ellMatrix->col_index, 0, ellMatrix->data_size * sizeof(u_int64_t));
-    for (unsigned int row = 0; row < ellMatrix->row_size; row++) {
-        unsigned int row_start = csrMatrix->row_pointer[row];
-        unsigned int num_nz_elem = csrMatrix->row_pointer[row + 1] - row_start;
-        for (int i = 0; i < num_nz_elem; i++) {
-            unsigned int index = row * ellMatrix->num_elem + i;
+    for (u_int64_t row = 0; row < ellMatrix->row_size; row++) {
+        u_int64_t row_start = csrMatrix->row_pointer[row];
+        u_int64_t num_nz_elem = csrMatrix->row_pointer[row + 1] - row_start;
+        for (u_int64_t i = 0; i < num_nz_elem; i++) {
+            u_int64_t index = row * ellMatrix->num_elem + i;
             ellMatrix->data[index] = csrMatrix->data[row_start + i];
             ellMatrix->col_index[index] = csrMatrix->col_index[row_start + i];
         }
@@ -94,12 +94,12 @@ void ELLMatrix_outAsJSON(ELLMatrix *matrix, FILE *out) {
     fprintf(out, "%s: %lu,\n", "\"col size\"", matrix->col_size);
     fprintf(out, "%s: %lu,\n", "\"num_non_zero_elements\"", matrix->num_non_zero_elements);
     fprintf(out, "%s: [ ", "\"col_index\"");
-    for (int i=0; i < matrix->num_non_zero_elements - 1; i++) {
+    for (u_int64_t i=0; i < matrix->num_non_zero_elements - 1; i++) {
         fprintf(out, "%lu, ", matrix->col_index[i]);
     }
     fprintf(out, "%lu ],\n", matrix->col_index[matrix->num_non_zero_elements - 1]);
     fprintf(out, "%s: [ ", "\"data\"");
-    for (int i=0; i < matrix->num_non_zero_elements - 1; i++) {
+    for (u_int64_t i=0; i < matrix->num_non_zero_elements - 1; i++) {
         fprintf(out, "%f, ", matrix->data[i]);
     }
     fprintf(out, "%f ]\n", matrix->data[matrix->num_non_zero_elements - 1]);

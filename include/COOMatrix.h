@@ -21,13 +21,7 @@ typedef struct COOMatrix {
     u_int64_t num_non_zero_elements;
 } COOMatrix;
 
-// COOMatrix *COOMatrix_new(const float *Matrix, int rows, int cols);
-COOMatrix *COOMatrix_new(FILE *f);
 void COOMatrix_free(COOMatrix *matrix);
 void COOMatrix_outAsJSON(COOMatrix *matrix, FILE *out);
-
-//SwapMap getRowSwapMap(COOMatrix *matrix);
-//void swapRow(SwapMap *rowSwapMap);
-//void swapRowInverse(SwapMap *rowSwapMap);
 
 #endif //SPARSEMATRIX_COOMATRIX_H

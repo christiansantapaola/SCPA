@@ -7,11 +7,6 @@
 #include "SpMVResult.h"
 #include "SpMV.h"
 
-float TEST_MATRIX[4][4] = {11.0f, 12.0f, 0.0f, 0.0f,
-                           0.0f, 22.0f, 23.0f, 0.0f,
-                           0.0f, 0.0f, 33.0f, 0.0f,
-                           0.0f, 0.0f, 43.0f, 44.0f};
-
 const char *PROGRAM_NAME = "spmvELLOpenMP";
 
 int main(int argc, char *argv[]) {

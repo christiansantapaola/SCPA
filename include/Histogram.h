@@ -15,10 +15,10 @@ struct Pair {
 
 typedef struct Histogram {
     struct Pair *hist;
-    size_t size;
+    u_int64_t size;
 } Histogram;
 
-    Histogram *Histogram_new(size_t size);
+    Histogram *Histogram_new(u_int64_t size);
     void Histogram_free(Histogram *histogram);
     void Histogram_insert(Histogram *histogram, u_int64_t i);
     u_int64_t Histogram_getElemAtIndex(Histogram *histogram, u_int64_t i);

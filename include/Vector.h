@@ -13,10 +13,10 @@
 
 typedef struct Vector {
     float *data;
-    unsigned int size;
+    u_int64_t size;
 } Vector;
 
-Vector *Vector_new(unsigned int size);
+Vector *Vector_new(u_int64_t size);
 void Vector_free(Vector *vector);
 Vector *Vector_pinned_memory_new(unsigned int size);
 void Vector_pinned_memory_free(Vector *vector);

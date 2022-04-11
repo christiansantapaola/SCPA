@@ -14,7 +14,7 @@ extern "C" CSRMatrix *CSRMatrix_pinned_memory_new(COOMatrix *cooMatrix) {
     csrMatrix->col_size = cooMatrix->col_size;
     csrMatrix->num_non_zero_elements = cooMatrix->num_non_zero_elements;
     checkCudaErrors(cudaHostAlloc(&csrMatrix->data, csrMatrix->num_non_zero_elements * sizeof(float ), cudaHostAllocDefault));
-    checkCudaErrors(cudaHostAlloc(&csrMatrix->col_index, csrMatrix->num_non_zero_elements * sizeof(u_int64_t), cudaHostAllocDefault))
+    checkCudaErrors(cudaHostAlloc(&csrMatrix->col_index, csrMatrix->num_non_zero_elements * sizeof(u_int64_t), cudaHostAllocDefault));
     checkCudaErrors(cudaHostAlloc(&csrMatrix->row_pointer, (csrMatrix->row_size + 1) * sizeof (u_int64_t), cudaHostAllocDefault));
     Histogram *elemForRow = Histogram_new(csrMatrix->row_size);
 

@@ -20,11 +20,11 @@ void CSRMatrix_SpMV_OPENMP(const CSRMatrix *matrix,const Vector *x, Vector *y, S
     }
     start = omp_get_wtime();
 #pragma omp parallel for schedule(auto) default(none) shared(matrix, x, y)
-    for (int row = 0; row < matrix->row_size; row++) {
+    for (u_int64_t row = 0; row < matrix->row_size; row++) {
         float dot = 0.0f;
-        int row_start = matrix->row_pointer[row];
-        int row_end = matrix->row_pointer[row + 1];
-        for (int elem = row_start; elem < row_end; elem++) {
+        u_int64_t row_start = matrix->row_pointer[row];
+        u_int64_t row_end = matrix->row_pointer[row + 1];
+        for (u_int64_t elem = row_start; elem < row_end; elem++) {
             dot += matrix->data[elem] * x->data[matrix->col_index[elem]];
         }
         y->data[row] += dot;

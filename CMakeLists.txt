@@ -3,6 +3,21 @@ project(SparseMatrix  LANGUAGES C CXX CUDA)
 # find package
 find_package(CUDA 11.0 REQUIRED)
 find_package(OpenMP REQUIRED)
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_C_FLAGS "-Wall -Wextra")
+set(CMAKE_CUDA_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+set(CMAKE_C_FLAGS "-Wall -Wextra")
+set(CMAKE_C_FLAGS_DEBUG "-g")
+set(CMAKE_C_FLAGS_RELEASE "-O2")
+set(CMAKE_CUDA_FLAGS_RELEASE "-O2 -noeh")
+set(CMAKE_CUDA_FLAGS_DEBUG "--profile --debug --device-debug -noeh")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -40,6 +55,7 @@ add_executable(readELL
         lib/mmio/src/mmio.c
         src/util/Histogram.c
 )
+target_link_libraries(readELL OpenMP::OpenMP_C)
 
 add_executable(spmvCSR
         src/spmvCSRCuda.c
