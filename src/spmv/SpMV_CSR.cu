@@ -51,7 +51,6 @@ void CSRMatrix_SpMV_GPU(const CSRMatrix *matrix, const Vector *x, Vector *y, SpM
     u_int64_t *d_col_index, *d_row_ptr;
     cudaEvent_t start, stop, instart, instop, outstart, outstop;
     size_t memoryUsed;
-    clock_t cstart = clock();
     if (!matrix || !x || !y) {
         if (result) {
             result->success = 0;
@@ -118,10 +117,8 @@ void CSRMatrix_SpMV_GPU(const CSRMatrix *matrix, const Vector *x, Vector *y, SpM
     checkCudaErrors(cudaFree(d_y));
     cudaEventRecord(outstop);
     cudaEventSynchronize(stop);
-    clock_t cend = clock();
     if (result) {
         result->success = 1;
-        result->CPUFunctionExecutionTime = (((float)(cend - cstart)) / CLOCKS_PER_SEC) * 1000.0f;
         cudaEventElapsedTime(&result->GPUKernelExecutionTime, start, stop);
         cudaEventSynchronize(instop);
         cudaEventElapsedTime(&result->GPUInputOnDeviceTime, instart, instop);

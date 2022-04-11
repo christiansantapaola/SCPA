@@ -17,7 +17,6 @@ typedef struct SpMVResultCUDA {
     BlockGridInfo blockGridInfo;
     size_t GPUtotalGlobMemory;
     size_t GPUusedGlobalMemory;
-    float CPUFunctionExecutionTime;
 } SpMVResultCUDA;
 
 typedef struct SpMVResultOpenMP {
