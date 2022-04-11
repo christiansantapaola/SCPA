@@ -39,7 +39,7 @@ int MTXParser_read_mtx_crd_size(FILE *f, u_int64_t *M, u_int64_t *N, u_int64_t *
 {
     char line[MM_MAX_LINE_LENGTH];
     int num_items_read;
-
+    if (!f || !M || !N || !nz) return -1;
     /* set return null parameter values, in case we exit with errors */
     *M = *N = *nz = 0;
 
@@ -71,6 +71,7 @@ int MTXParser_read_mtx_crd_size(FILE *f, u_int64_t *M, u_int64_t *N, u_int64_t *
  * @return the content of the mtx file stored in a COO sparse matrix format.
  */
 COOMatrix *MTXParser_parse(MTXParser *parser) {
+    if (!parser) return NULL;
     int ret_code;
     MM_typecode matcode;
     u_int64_t M, N, nz;

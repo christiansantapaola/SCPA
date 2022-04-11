@@ -36,7 +36,15 @@ int main(int argc, char *argv[]) {
             continue;
         }
         MTXParser *mtxParser = MTXParser_new(entry->d_name);
+        if (!mtxParser) {
+            fprintf(stderr, "MTXParser_new(%p) failed\n", entry->d_name);
+            exit(EXIT_FAILURE);
+        }
         COOMatrix *cooMatrix = MTXParser_parse(mtxParser);
+        if (!cooMatrix) {
+            fprintf(stderr, "MTXParser_parser(%p) failed\n", mtxParser);
+            exit(EXIT_FAILURE);
+        }
         Vector *X = Vector_pinned_memory_new(cooMatrix->row_size);
         Vector_set(X, 1.0f);
         Vector *Y = Vector_pinned_memory_new(cooMatrix->col_size);
