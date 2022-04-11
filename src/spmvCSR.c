@@ -12,7 +12,7 @@
 const char *PROGRAM_NAME = "spmvCSR_stat";
 
 void print_status_bar(int used, int total,char *file) {
-    fprintf(stderr, "\r[");
+    fprintf(stderr, "\33[2K\r[");
     for (int i = 0; i < used; i++) {
         fprintf(stderr, "#");
     }
