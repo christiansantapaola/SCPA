@@ -56,7 +56,7 @@ add_executable(readELL
 )
 target_link_libraries(readELL OpenMP::OpenMP_C)
 
-add_executable(spmvCSR
+add_executable(spmvCSRCuda
         src/spmvCSRCuda.c
         src/sparsematrix/CSRMatrix.c
         src/sparsematrix/CSRMatrix.cu
@@ -73,10 +73,10 @@ add_executable(spmvCSR
         src/util/BlockGridInfo.c
         )
 
-target_link_libraries(spmvCSR ${CUDA_LIBRARIES} OpenMP::OpenMP_C)
-set_target_properties(spmvCSR PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+target_link_libraries(spmvCSRCuda ${CUDA_LIBRARIES} OpenMP::OpenMP_C)
+set_target_properties(spmvCSRCuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
-add_executable(spmvELL
+add_executable(spmvELLCuda
         src/spmvELLCuda.c
         src/sparsematrix/ELLMatrix.c
         src/sparsematrix/ELLMatrix.cu
@@ -94,8 +94,8 @@ add_executable(spmvELL
         src/spmv/SpMV_ELL_openmp.c
         src/util/BlockGridInfo.c)
 
-target_link_libraries(spmvELL ${CUDA_LIBRARIES} OpenMP::OpenMP_C)
-set_target_properties(spmvELL PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+target_link_libraries(spmvELLCuda ${CUDA_LIBRARIES} OpenMP::OpenMP_C)
+set_target_properties(spmvELLCuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 add_executable(spmvELLOpenMP
         src/spmvELLOpenMP.c
@@ -128,3 +128,48 @@ add_executable(spmvCSROpenMP
         src/util/BlockGridInfo.c)
 
 target_link_libraries(spmvCSROpenMP OpenMP::OpenMP_C)
+
+add_executable(spmvCSR
+        src/spmvCSR.c
+        src/sparsematrix/ELLMatrix.c
+        src/sparsematrix/ELLMatrix.cu
+        src/sparsematrix/CSRMatrix.c
+        src/sparsematrix/CSRMatrix.cu
+        src/sparsematrix/COOMatrix.c
+        src/sparsematrix/Vector.c
+        src/sparsematrix/Vector.cu
+        src/sparsematrix/MTXParser.c
+        lib/mmio/src/mmio.c
+        src/util/Histogram.c
+        src/util/cudaUtils.cu
+        src/spmv/SpMV_CSR.cu
+        src/spmv/SpMV_CSR_openmp.c
+        src/spmv/SpMVResult.c
+        src/spmv/SpMV.c
+        src/spmv/SpMV_ELL_openmp.c
+        src/util/BlockGridInfo.c)
+
+target_link_libraries(spmvCSR ${CUDA_LIBRARIES} OpenMP::OpenMP_C)
+set_target_properties(spmvCSR PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
+
+add_executable(spmvELL
+        src/spmvELL.c
+        src/sparsematrix/ELLMatrix.c
+        src/sparsematrix/ELLMatrix.cu
+        src/sparsematrix/CSRMatrix.c
+        src/sparsematrix/COOMatrix.c
+        src/sparsematrix/Vector.c
+        src/sparsematrix/Vector.cu
+        src/sparsematrix/MTXParser.c
+        lib/mmio/src/mmio.c
+        src/util/Histogram.c
+        src/util/cudaUtils.cu
+        src/spmv/SpMV_ELL.cu
+        src/spmv/SpMV_ELL_openmp.c
+        src/spmv/SpMVResult.c
+        src/spmv/SpMV.c
+        src/util/BlockGridInfo.c)
+
+target_link_libraries(spmvELL ${CUDA_LIBRARIES} OpenMP::OpenMP_C)
+set_target_properties(spmvELL PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
