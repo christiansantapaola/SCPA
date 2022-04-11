@@ -50,17 +50,17 @@ int doesItFitInGlobalMemory(cudaDeviceProp *prop, size_t size) {
 
 void CudaUtils_getBestCudaParameters(unsigned int numRows, cudaDeviceProp *prop, BlockGridInfo *bestParams) {
     if (!bestParams || !prop) return;
-    int size = 0;
+    u_int64_t size = 0;
     for (size = 1;  prop->warpSize * size < prop->maxThreadsPerBlock; size++);
     BlockGridInfo *infos = (BlockGridInfo *)malloc(size * sizeof(BlockGridInfo));
-    for (int i = 1; prop->warpSize * i < prop->maxThreadsPerBlock; i++) {
+    for (u_int64_t i = 1; prop->warpSize * i < prop->maxThreadsPerBlock; i++) {
         infos[i - 1].maxThreadPerBlock = prop->maxThreadsPerBlock;
         infos[i - 1].maxBlockSizePerSM = prop->maxBlocksPerMultiProcessor;
         infos[i - 1].maxThreadPerSM = prop->maxThreadsPerMultiProcessor;
         infos[i - 1].blockSize =prop->warpSize * i;
         infos[i - 1].numBlockToFillSM = prop->maxThreadsPerMultiProcessor / infos[i - 1].blockSize;
         infos[i - 1].gridSize = (numRows % infos[i - 1].blockSize == 0) ? numRows / infos[i - 1].blockSize : numRows / infos[i - 1].blockSize + 1;
-        infos[i - 1].spread = (infos[i - 1].gridSize < prop->multiProcessorCount) ? (float) infos[i - 1].gridSize / (float) prop->multiProcessorCount : 1.0f;
+        infos[i - 1].spread = (infos[i - 1].gridSize < (u_int64_t)prop->multiProcessorCount) ? (float) infos[i - 1].gridSize / (float) prop->multiProcessorCount : 1.0f;
         infos[i - 1].utilizationSM = (float) infos[i - 1].gridSize / (float) infos[i - 1].numBlockToFillSM;
         infos[i - 1].numThread = infos[i - 1].blockSize * infos[i - 1].gridSize;
         infos[i - 1].wastedThread = infos[i - 1].numThread - numRows;

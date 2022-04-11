@@ -5,8 +5,8 @@
 #include <stdlib.h>
 
 typedef struct BlockGridInfo {
-    size_t blockSize;
-    size_t gridSize;
+    u_int64_t blockSize;
+    u_int64_t gridSize;
     float utilizationSM;
     float spread;
     unsigned int numThread;
