@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "USAGE: %s dir\n", PROGRAM_NAME);
         return EXIT_FAILURE;
     }
-    int numDir = count_directory(argv[1]);
+    int numDir = count_directory(argv[1]) - 2;
     struct dirent *entry;
     FILE *out = (argc >= 3) ? fopen(argv[2], "r") : stdout;
     if (!out) {
