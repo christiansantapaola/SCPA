@@ -205,7 +205,7 @@ int MTXParser_parseLine(MTXParser *mtxParser, u_int64_t *row, u_int64_t *col, fl
     free(mtxParser->line);
     mtxParser->line = strdup(line);
     token = tokenize(line, " ", tok, 3);
-    if (token == 0) {
+    if (token < 2 || token > 3) {
         free(line);
         return -1;
     }
