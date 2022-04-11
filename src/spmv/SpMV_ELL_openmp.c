@@ -21,9 +21,7 @@ void ELLMatrix_SpMV_OPENMP(const ELLMatrix *matrix,const Vector *x, Vector *y, S
         return;
     }
     start = omp_get_wtime();
-    int numThread = omp_get_num_threads();
-    int chunk = matrix->row_size / numThread;
-#pragma omp parallel for schedule(dynamic, chunk) default(none) shared(matrix, x, y, stderr, chunk)
+#pragma omp parallel for schedule(auto) default(none) shared(matrix, x, y, stderr)
     for (int row = 0; row < matrix->row_size; row++) {
         float dot = 0.0f;
         for (size_t i = 0; i < matrix->num_elem; i++) {

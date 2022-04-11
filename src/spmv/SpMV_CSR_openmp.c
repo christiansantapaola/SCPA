@@ -19,7 +19,7 @@ void CSRMatrix_SpMV_OPENMP(const CSRMatrix *matrix,const Vector *x, Vector *y, S
         memset(result, 0, sizeof(*result));
     }
     start = omp_get_wtime();
-#pragma omp parallel for schedule(dynamic, 128) default(none) shared(matrix, x, y)
+#pragma omp parallel for schedule(auto) default(none) shared(matrix, x, y)
     for (int row = 0; row < matrix->row_size; row++) {
         float dot = 0.0f;
         int row_start = matrix->row_pointer[row];
