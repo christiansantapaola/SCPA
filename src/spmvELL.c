@@ -13,6 +13,34 @@
 
 const char *PROGRAM_NAME = "spmvCSR_stat";
 
+void print_status_bar(int used, int total,char *file) {
+    fprintf(stderr, "\r[");
+    for (int i = 0; i < used; i++) {
+        fprintf(stderr, "#");
+    }
+    for (int i = used; i < total; i++) {
+        fprintf(stderr, "-");
+    }
+    fprintf(stderr, "] %.2f %s", (double) used / (double) total, file);
+}
+
+int count_directory(const char *dirpath) {
+    int count = 0;
+    struct dirent *entry;
+    DIR *dir = opendir(dirpath);
+    if (!dir) {
+        perror(dirpath);
+        fprintf(stderr, "USAGE: %s dir\n", PROGRAM_NAME);
+        return -1;
+    }
+    while ((entry = readdir(dir)) != NULL) {
+        count++;
+    }
+    closedir(dir);
+    return count;
+}
+
+
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         fprintf(stderr, "USAGE: %s dir [output.json]\n", PROGRAM_NAME);
@@ -24,6 +52,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "USAGE: %s dir\n", PROGRAM_NAME);
         return EXIT_FAILURE;
     }
+    int numDir = count_directory(argv[1]) - 2;
     struct dirent *entry;
     FILE *out = (argc >= 3) ? fopen(argv[2], "r") : stdout;
     if (!out) {
@@ -32,10 +61,20 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
     fprintf(out, "{ \"ELLResult\": [\n");
+    char absolutePath [PATH_MAX+1];
     chdir(argv[1]);
+    int fileProcessed = 0;
     while ((entry = readdir(dir)) != NULL) {
         if (entry->d_type != DT_REG) {
             continue;
+        }
+        print_status_bar(fileProcessed, numDir, entry->d_name);
+        fileProcessed++;
+        memset(absolutePath, 0, PATH_MAX + 1);
+        char *ptr = realpath(entry->d_name, absolutePath);
+        if (!ptr) {
+            perror(entry->d_name);
+            exit(EXIT_FAILURE);
         }
         MTXParser *mtxParser = MTXParser_new(entry->d_name);
         if (!mtxParser) {
@@ -90,5 +129,7 @@ int main(int argc, char *argv[]) {
         MTXParser_free(mtxParser);
     }
     fprintf(out, "{}\n]}\n");
+    print_status_bar(numDir, numDir, "");
+    fprintf(stderr, "\n");
     return EXIT_SUCCESS;
 }
