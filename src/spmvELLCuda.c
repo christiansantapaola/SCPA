@@ -7,7 +7,7 @@
 #include "SpMVResult.h"
 #include "SpMV.h"
 
-const char *PROGRAM_NAME = "spmvELL";
+#define PROGRAM_NAME "spmvELLCuda"
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {

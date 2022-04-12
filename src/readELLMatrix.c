@@ -12,8 +12,8 @@
 #include "CSRMatrix.h"
 #include "ELLMatrix.h"
 
+#define PROGRAM_NAME "readELL"
 
-const char *PROGRAM_NAME = "readELL";
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         fprintf(stderr, "USAGE: %s file.mtx\n", PROGRAM_NAME);

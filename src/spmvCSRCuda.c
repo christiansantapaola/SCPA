@@ -9,7 +9,7 @@
 #include "Vector.h"
 #include "SpMV.h"
 
-const char *PROGRAM_NAME = "spmvCSR";
+#define PROGRAM_NAME "spmvCSRCuda"
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {

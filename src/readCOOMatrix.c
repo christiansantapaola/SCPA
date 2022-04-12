@@ -7,7 +7,7 @@
 #include "MTXParser.h"
 #include "COOMatrix.h"
 
-const char *PROGRAM_NAME = "readCOO";
+#define PROGRAM_NAME "readCOO"
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {

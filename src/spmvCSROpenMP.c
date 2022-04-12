@@ -10,7 +10,7 @@
 #include "Vector.h"
 #include "SpMV.h"
 
-const char *PROGRAM_NAME = "spmvCSROpenMP";
+#define PROGRAM_NAME "spmvCSROpenMP"
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {

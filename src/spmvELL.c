@@ -11,7 +11,7 @@
 #include "SpMV.h"
 
 
-const char *PROGRAM_NAME = "spmvCSR_stat";
+#define PROGRAM_NAME "spmvELL"
 
 void print_status_bar(int used, int total,char *file) {
     fprintf(stderr, "\33[2K\r[");

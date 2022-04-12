@@ -7,7 +7,8 @@
 #include "COOMatrix.h"
 #include "CSRMatrix.h"
 #include "MTXParser.h"
-const char *PROGRAM_NAME = "readCSR";
+
+#define PROGRAM_NAME "readCSR"
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
