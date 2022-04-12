@@ -31,11 +31,21 @@ set(CMAKE_CUDA_ARCHITECTURES 52 75)
 # Add executable target with source files listed in SOURCE_FILES variable
 #
 
+add_executable(analyzeMatrix
+        src/analyzeMatrix.c
+        src/sparsematrix/COOMatrix.c
+        src/sparsematrix/MTXParser.c
+        src/util/Histogram.c
+        lib/mmio/src/mmio.c)
+
+
 add_executable(readCOO
         src/readCOOMatrix.c
         src/sparsematrix/COOMatrix.c
         src/sparsematrix/MTXParser.c
         lib/mmio/src/mmio.c)
+
+
 
 add_executable(readCSR
         src/readCSRMatrix.c
@@ -173,3 +183,4 @@ add_executable(spmvELL
 
 target_link_libraries(spmvELL ${CUDA_LIBRARIES} OpenMP::OpenMP_C)
 set_target_properties(spmvELL PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+

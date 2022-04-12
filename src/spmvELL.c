@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
             perror("CSRMatrix_new()");
             exit(EXIT_FAILURE);
         }
-        ELLMatrix *ellMatrix = ELLMatrix_pinned_memory_new(csrMatrix);
+        ELLMatrix *ellMatrix = ELLMatrix_new(csrMatrix);
         if (!ellMatrix) {
             perror("ELLMatrix_new()");
             exit(EXIT_FAILURE);
@@ -148,11 +148,12 @@ int main(int argc, char *argv[]) {
         fprintf(out, "\"OpenMPresult\": ");
         SpMVResultCPU_outAsJSON(&openmpResult, out);
         fprintf(out, "\n},\n");
-        ELLMatrix_pinned_memory_free(ellMatrix);
+        ELLMatrix_free(ellMatrix);
         CSRMatrix_free(csrMatrix);
         Vector_pinned_memory_free(X);
         Vector_pinned_memory_free(Y);
         Vector_free(Z);
+        Vector_free(U);
         COOMatrix_free(cooMatrix);
         MTXParser_free(mtxParser);
     }
