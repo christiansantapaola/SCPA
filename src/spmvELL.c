@@ -87,15 +87,43 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
         Vector *X = Vector_pinned_memory_new(cooMatrix->row_size);
+        if (!X) {
+            fprintf(stderr, "Vector_pinned_memory_new(%lu)", cooMatrix->row_size);
+            perror("");
+            exit(EXIT_FAILURE);
+        }
         Vector_set(X, 1.0f);
         Vector *Y = Vector_pinned_memory_new(cooMatrix->col_size);
+        if (!Y) {
+            fprintf(stderr, "Vector_pinned_memory_new(%lu)", cooMatrix->col_size);
+            perror("");
+            exit(EXIT_FAILURE);
+        }
         Vector_set(Y, 0.0f);
         Vector *Z = Vector_new(cooMatrix->col_size);
+        if (!Z) {
+            fprintf(stderr, "Vector_(%lu)", cooMatrix->col_size);
+            perror("");
+            exit(EXIT_FAILURE);
+        }
         Vector_set(Z, 0.0f);
         Vector *U = Vector_new(cooMatrix->col_size);
+        if (!U) {
+            fprintf(stderr, "Vector_(%lu)", cooMatrix->col_size);
+            perror("");
+            exit(EXIT_FAILURE);
+        }
         Vector_set(U, 0.0f);
         CSRMatrix *csrMatrix = CSRMatrix_new(cooMatrix);
+        if (!csrMatrix) {
+            perror("CSRMatrix_new()");
+            exit(EXIT_FAILURE);
+        }
         ELLMatrix *ellMatrix = ELLMatrix_pinned_memory_new(csrMatrix);
+        if (!ellMatrix) {
+            perror("ELLMatrix_new()");
+            exit(EXIT_FAILURE);
+        }
         SpMVResultCPU cpuResult;
         SpMVResultCUDA gpuResult;
         SpMVResultCPU openmpResult;

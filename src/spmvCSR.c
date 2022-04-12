@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
         }
         MTXParser *mtxParser = MTXParser_new(absolutePath);
         if (!mtxParser) {
-            fprintf(stderr, "MTXParser_new(\"%s\") failed\n", entry->d_name);
+            fprintf(stderr, "MTXParser_new(\"%s\") failed\n", absolutePath);
             exit(EXIT_FAILURE);
         }
         COOMatrix *cooMatrix = MTXParser_parse(mtxParser);
@@ -84,14 +84,39 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
         Vector *X = Vector_pinned_memory_new(cooMatrix->row_size);
+        if (!X) {
+            fprintf(stderr, "Vector_pinned_memory_new(%lu)", cooMatrix->row_size);
+            perror("");
+            exit(EXIT_FAILURE);
+        }
         Vector_set(X, 1.0f);
         Vector *Y = Vector_pinned_memory_new(cooMatrix->col_size);
+        if (!Y) {
+            fprintf(stderr, "Vector_pinned_memory_new(%lu)", cooMatrix->col_size);
+            perror("");
+            exit(EXIT_FAILURE);
+        }
         Vector_set(Y, 0.0f);
         Vector *Z = Vector_new(cooMatrix->col_size);
+        if (!Z) {
+            fprintf(stderr, "Vector_(%lu)", cooMatrix->col_size);
+            perror("");
+            exit(EXIT_FAILURE);
+        }
         Vector_set(Z, 0.0f);
         Vector *U = Vector_new(cooMatrix->col_size);
+        if (!U) {
+            fprintf(stderr, "Vector_(%lu)", cooMatrix->col_size);
+            perror("");
+            exit(EXIT_FAILURE);
+        }
         Vector_set(U, 0.0f);
         CSRMatrix *csrMatrix = CSRMatrix_pinned_memory_new(cooMatrix);
+        if (!csrMatrix) {
+            perror("CSRMatrix_pinned_memory_new()");
+            exit(EXIT_FAILURE);
+
+        }
         SpMVResultCPU cpuResult;
         SpMVResultCUDA gpuResult;
         SpMVResultCPU openmpResult;
@@ -101,7 +126,7 @@ int main(int argc, char *argv[]) {
         int successGPU = Vector_equals(Z, Y);
         int successOpenMP = Vector_equals(Z, U);
         fprintf(out, "{\n");
-        fprintf(out, "\"matrix\": \"%s\",\n", entry->d_name);
+        fprintf(out, "\"matrix\": \"%s\",\n", absolutePath);
         fprintf(out, "\"successGPU\": %s,\n", (successGPU) ? "true" : "false");
         fprintf(out, "\"successOpenMP\": %s,\n", (successOpenMP) ? "true" : "false");
         fprintf(out, "\"MatrixInfo\": ");

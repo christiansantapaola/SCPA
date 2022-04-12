@@ -9,12 +9,14 @@
 #include <stdlib.h>
 #include "COOMatrix.h"
 
+#define MTXPARSER_MAX_LINE_SIZE 4096
+
 typedef struct MTXParser {
     FILE *file;
     char *filename;
     int currentLine;
     char *line;
-    char *invalidToken;
+    size_t lineSize;
 } MTXParser;
 
 MTXParser *MTXParser_new(char *filename);
