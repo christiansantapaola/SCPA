@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
     CSRMatrix *csrMatrix = CSRMatrix_new(cooMatrix);
-    ELLMatrix *ellMatrix = ELLMatrix_pinned_memory_new(csrMatrix);
+    ELLMatrix *ellMatrix = ELLMatrix_new(csrMatrix);
     Vector* X = Vector_pinned_memory_new(ellMatrix->col_size);
     Vector* Y = Vector_new(ellMatrix->row_size);
     Vector* Z = Vector_pinned_memory_new(ellMatrix->row_size);
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
     Vector_pinned_memory_free(Z);
     Vector_free(Y);
     Vector_pinned_memory_free(X);
-    ELLMatrix_pinned_memory_free(ellMatrix);
+    ELLMatrix_free(ellMatrix);
     CSRMatrix_free(csrMatrix);
     COOMatrix_free(cooMatrix);
     return EXIT_SUCCESS;
