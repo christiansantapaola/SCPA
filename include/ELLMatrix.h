@@ -1,7 +1,3 @@
-//
-// Created by 9669c on 15/03/2022.
-//
-
 #ifndef SPARSEMATRIX_ELLMATRIX_H
 #define SPARSEMATRIX_ELLMATRIX_H
 

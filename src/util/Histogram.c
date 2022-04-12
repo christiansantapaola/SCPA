@@ -1,7 +1,3 @@
-//
-// Created by 9669c on 18/03/2022.
-//
-
 #include "Histogram.h"
 
 Histogram *Histogram_new(u_int64_t size) {

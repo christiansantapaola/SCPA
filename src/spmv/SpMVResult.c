@@ -1,7 +1,3 @@
-//
-// Created by 9669c on 23/03/2022.
-//
-
 #include "SpMVResult.h"
 
 void SpMVResultCUDA_outAsJSON(SpMVResultCUDA *result, FILE *out) {

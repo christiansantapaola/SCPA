@@ -1,7 +1,3 @@
-//
-// Created by 9669c on 14/03/2022.
-//
-
 #include "CSRMatrix.h"
 
 CSRMatrix *CSRMatrix_new(COOMatrix *cooMatrix) {

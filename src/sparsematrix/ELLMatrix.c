@@ -1,7 +1,3 @@
-//
-// Created by 9669c on 15/03/2022.
-//
-
 #include "ELLMatrix.h"
 #include <omp.h>
 

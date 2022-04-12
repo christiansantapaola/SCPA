@@ -1,8 +1,3 @@
-//
-// Created by 9669c on 11/03/2022.
-//
-
-
 extern "C" {
 #include "CSRMatrix.h"
 #include "Vector.h"

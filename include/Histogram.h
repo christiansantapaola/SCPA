@@ -1,7 +1,3 @@
-//
-// Created by 9669c on 18/03/2022.
-//
-
 #ifndef SPARSEMATRIX_HISTOGRAM_H
 #define SPARSEMATRIX_HISTOGRAM_H
 

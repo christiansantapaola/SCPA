@@ -1,7 +1,3 @@
-//
-// Created by 9669c on 23/03/2022.
-//
-
 #ifndef SPARSEMATRIX_SPMVRESULT_H
 #define SPARSEMATRIX_SPMVRESULT_H
 

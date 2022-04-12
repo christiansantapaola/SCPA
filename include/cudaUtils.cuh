@@ -1,7 +1,3 @@
-//
-// Created by 9669c on 16/03/2022.
-//
-
 #ifndef SPARSEMATRIX_CUDAUTILS_H
 #define SPARSEMATRIX_CUDAUTILS_H
 

@@ -1,7 +1,3 @@
-//
-// Created by 9669c on 07/04/2022.
-//
-
 #ifndef SPARSEMATRIX_MTXPARSER_H
 #define SPARSEMATRIX_MTXPARSER_H
 #include <stdio.h>

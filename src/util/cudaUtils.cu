@@ -1,7 +1,3 @@
-//
-// Created by 9669c on 16/03/2022.
-//
-
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include "cudaUtils.cuh"

@@ -24,7 +24,6 @@ extern "C" ELLMatrix *ELLMatrix_pinned_memory_new(CSRMatrix *csrMatrix) {
 
     ellMatrix->num_elem = max_num_nz_elem;
     ellMatrix->data_size = ellMatrix->row_size * ellMatrix->num_elem;
-
     checkCudaErrors(cudaHostAlloc(&ellMatrix->data, ellMatrix->data_size * sizeof(float), cudaHostAllocDefault));
     checkCudaErrors(cudaHostAlloc(&ellMatrix->col_index, ellMatrix->data_size * sizeof(u_int64_t), cudaHostAllocDefault));
     // add padding;

@@ -1,7 +1,3 @@
-//
-// Created by 9669c on 14/03/2022.
-//
-
 #ifndef SPARSEMATRIX_COOMATRIX_H
 #define SPARSEMATRIX_COOMATRIX_H
 
