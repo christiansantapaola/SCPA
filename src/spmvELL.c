@@ -156,12 +156,12 @@ int main(int argc, char *argv[]) {
             fprintf(out, "\n},\n");
             ELLMatrix_free(ellMatrix);
         } else {
-            ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(&lower);
+            ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(lower);
             if (!ellMatrix) {
                 perror("ELLMatrix_new()");
                 exit(EXIT_FAILURE);
             }
-            CSRMatrix *csrMatrix = CSRMatrix_new(&higher);
+            CSRMatrix *csrMatrix = CSRMatrix_new(higher);
             if (!csrMatrix) {
                 perror("CSRMatrix_new()");
                 exit(EXIT_FAILURE);
