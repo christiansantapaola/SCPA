@@ -18,6 +18,7 @@ typedef struct COOMatrix {
     u_int64_t num_non_zero_elements;
 } COOMatrix;
 
+COOMatrix *COOMatrix_new();
 void COOMatrix_free(COOMatrix *matrix);
 void COOMatrix_outAsJSON(COOMatrix *matrix, FILE *out);
 void COOMatrix_infoAsJSON(COOMatrix *matrix, FILE *out);

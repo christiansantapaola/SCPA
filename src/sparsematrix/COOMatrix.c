@@ -1,5 +1,14 @@
 #include "COOMatrix.h"
 
+COOMatrix *COOMatrix_new() {
+    COOMatrix *matrix = malloc(sizeof(*matrix));
+    if (!matrix) {
+        return NULL;
+    }
+    memset(matrix, 0, sizeof(*matrix));
+    return matrix;
+}
+
 void COOMatrix_free(COOMatrix *matrix) {
     if (!matrix) return;
     free(matrix->data);

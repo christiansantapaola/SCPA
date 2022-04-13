@@ -115,7 +115,9 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
         Vector_set(U, 0.0f);
-        COOMatrix lower, higher;
+        COOMatrix *lower, *higher;
+        lower = COOMatrix_new();
+        higher = COOMatrix_new();
         int ret = COOMatrix_split(cooMatrix, &lower, &higher, MATRIX_SPLIT_THRESHOLD);
         if (ret == -1) {
             fprintf(stderr, "error in COOMatrix_split:\n");
@@ -153,12 +155,6 @@ int main(int argc, char *argv[]) {
             SpMVResultCPU_outAsJSON(&openmpResult, out);
             fprintf(out, "\n},\n");
             ELLMatrix_free(ellMatrix);
-            Vector_pinned_memory_free(X);
-            Vector_pinned_memory_free(Y);
-            Vector_free(Z);
-            Vector_free(U);
-            COOMatrix_free(cooMatrix);
-            MTXParser_free(mtxParser);
         } else {
             ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(&lower);
             if (!ellMatrix) {
@@ -201,13 +197,15 @@ int main(int argc, char *argv[]) {
             fprintf(out, "\n},\n");
             ELLMatrix_free(ellMatrix);
             CSRMatrix_free(csrMatrix);
-            Vector_pinned_memory_free(X);
-            Vector_pinned_memory_free(Y);
-            Vector_free(Z);
-            Vector_free(U);
-            COOMatrix_free(cooMatrix);
-            MTXParser_free(mtxParser);
         }
+        Vector_pinned_memory_free(X);
+        Vector_pinned_memory_free(Y);
+        Vector_free(Z);
+        Vector_free(U);
+        COOMatrix_free(lower);
+        COOMatrix_free(higher);
+        COOMatrix_free(cooMatrix);
+        MTXParser_free(mtxParser);
     }
     fprintf(out, "{}\n]}\n");
     print_status_bar(numDir, numDir, "");
