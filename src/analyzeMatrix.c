@@ -21,11 +21,16 @@ int main(int argc, char *argv[]) {
     if (!matrix) {
         exit(EXIT_FAILURE);
     }
-
-    Histogram *rowForElem = Histogram_new(matrix->col_size);
-    for (u_int64_t elem = 0; elem < matrix->num_non_zero_elements; elem++) {
-        Histogram_insert(rowForElem, matrix->row_index[elem]);
+    COOMatrix_outAsJSON(matrix, stdout);
+    COOMatrix first, second;
+    int ret = COOMatrix_split(matrix, &first, &second, 5);
+    if (ret == -1) {
+        fprintf(stderr, "fail\n");
+        return EXIT_FAILURE;
     }
-    Histogram_outAsJSON(rowForElem, stdout);
+    COOMatrix_outAsJSON(&first, stdout);
+    COOMatrix_outAsJSON(&second, stdout);
+
+
     return 0;
 }

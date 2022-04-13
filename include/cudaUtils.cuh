@@ -21,7 +21,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 void CudaUtils_setDevice(int device);
 void CudaUtils_getDeviceProp(int device, cudaDeviceProp *prop);
 int CudaUtils_getBestDevice();
-void CudaUtils_getBestCudaParameters(unsigned int numRows, cudaDeviceProp *prop, BlockGridInfo *bestParams);
+void CudaUtils_getBestCudaParameters(u_int64_t numRows, cudaDeviceProp *prop, BlockGridInfo *bestParams);
 
 
 

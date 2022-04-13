@@ -11,6 +11,7 @@ struct Pair {
 
 typedef struct Histogram {
     struct Pair *hist;
+    u_int64_t *map;
     u_int64_t size;
 } Histogram;
 

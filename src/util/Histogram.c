@@ -7,6 +7,10 @@ Histogram *Histogram_new(u_int64_t size) {
     }
     histogram->size = size;
     histogram->hist = malloc(size * sizeof(struct Pair));
+    if (!histogram->hist) {
+        free(histogram);
+        return NULL;
+    }
     for (u_int64_t i = 0; i < size; i++) {
         histogram->hist[i].first = 0;
         histogram->hist[i].second = i;

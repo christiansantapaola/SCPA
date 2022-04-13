@@ -43,6 +43,7 @@ add_executable(readCOO
         src/readCOOMatrix.c
         src/sparsematrix/COOMatrix.c
         src/sparsematrix/MTXParser.c
+        src/util/Histogram.c
         lib/mmio/src/mmio.c)
 
 
@@ -99,6 +100,7 @@ add_executable(spmvELLCuda
         src/util/Histogram.c
         src/util/cudaUtils.cu
         src/spmv/SpMV_ELL.cu
+        src/spmv/SpMV_CSR.cu
         src/spmv/SpMVResult.c
         src/spmv/SpMV.c
         src/spmv/SpMV_ELL_openmp.c
@@ -175,6 +177,7 @@ add_executable(spmvELL
         lib/mmio/src/mmio.c
         src/util/Histogram.c
         src/util/cudaUtils.cu
+        src/spmv/SpMV_CSR.cu
         src/spmv/SpMV_ELL.cu
         src/spmv/SpMV_ELL_openmp.c
         src/spmv/SpMVResult.c

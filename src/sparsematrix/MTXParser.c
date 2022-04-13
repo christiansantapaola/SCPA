@@ -93,7 +93,6 @@ int parseHeader(char **token, u_int64_t numToken, u_int64_t *row, u_int64_t *col
     return 0;
 }
 
-
 /**
  *
  * @param path: path to the mtx file to parse
@@ -255,13 +254,13 @@ COOMatrix *MTXParser_parse(MTXParser *parser) {
 
 
 /**
- * MTXParser_parseLine() will parse a line of the mtx data file.
- * @param mtxParser: istance of the MTXParser
- * @param row: where the row value should be stored, can't be NULL.
- * @param col: where the column value should be stored, can't be NULL.
- * @param data: where the element at pos (row, col) value should be stored, can't be NULL.
- * @return 0 if successfull, -1 if fail.
- */
+* MTXParser_parseLine() will parse a line of the mtx data file.
+* @param mtxParser: istance of the MTXParser
+* @param row: where the row value should be stored, can't be NULL.
+* @param col: where the column value should be stored, can't be NULL.
+* @param data: where the element at pos (row, col) value should be stored, can't be NULL.
+* @return 0 if successfull, -1 if fail.
+*/
 int MTXParser_parseLine(MTXParser *mtxParser, u_int64_t *row, u_int64_t *col, float * data) {
     if (!mtxParser || !row || !col || !data) return 0;
     char * line = NULL;

@@ -12,6 +12,7 @@
 
 
 #define PROGRAM_NAME "spmvELL"
+#define MATRIX_SPLIT_THRESHOLD 64
 
 void print_status_bar(int used, int total,char *file) {
     fprintf(stderr, "\33[2K\r[");
@@ -61,7 +62,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
     fprintf(out, "{ \"ELLResult\": [\n");
-    char absolutePath [PATH_MAX+1];
+    char absolutePath[PATH_MAX + 1];
     chdir(argv[1]);
     int fileProcessed = 0;
     while ((entry = readdir(dir)) != NULL) {
@@ -114,51 +115,105 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
         Vector_set(U, 0.0f);
-        CSRMatrix *csrMatrix = CSRMatrix_new(cooMatrix);
-        if (!csrMatrix) {
-            perror("CSRMatrix_new()");
+        COOMatrix lower, higher;
+        int ret = COOMatrix_split(cooMatrix, &lower, &higher, MATRIX_SPLIT_THRESHOLD);
+        if (ret == -1) {
+            fprintf(stderr, "error in COOMatrix_split:\n");
             exit(EXIT_FAILURE);
         }
-        ELLMatrix *ellMatrix = ELLMatrix_new(csrMatrix);
-        if (!ellMatrix) {
-            perror("ELLMatrix_new()");
-            exit(EXIT_FAILURE);
+        if (ret) {
+            ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(cooMatrix);
+            if (!ellMatrix) {
+                perror("ELLMatrix_new()");
+                exit(EXIT_FAILURE);
+            }
+            SpMVResultCPU cpuResult;
+            SpMVResultCUDA gpuResult;
+            SpMVResultCPU openmpResult;
+            ELLMatrix_SpMV_GPU(ellMatrix, X, Y, &gpuResult);
+            ELLMatrix_SpMV_CPU(ellMatrix, X, Z, &cpuResult);
+            ELLMatrix_SpMV_OPENMP(ellMatrix, X, U, &openmpResult);
+            int successGPU = Vector_equals(Y, Z);
+            int successOpenMP = Vector_equals(Z, U);
+            fprintf(out, "{\n");
+            fprintf(out, "\"matrix\": \"%s\",\n", entry->d_name);
+            fprintf(out, "\"successGPU\": %s,\n", (successGPU) ? "true" : "false");
+            fprintf(out, "\"successOpenMP\": %s,\n", (successOpenMP) ? "true" : "false");
+            fprintf(out, "\"MatrixInfo\": ");
+            fprintf(out, ",\n");
+            fprintf(out, "\"CPUresult\": ");
+            SpMVResultCPU_outAsJSON(&cpuResult, out);
+            fprintf(out, ",\n");
+            fprintf(out, "\"GPUresult\": ");
+            SpMVResultCUDA_outAsJSON(&gpuResult, out);
+            fprintf(out, ",\n");
+            fprintf(out, "\"GPUCSRresult\": ");
+            fprintf(out, ",\n");
+            fprintf(out, "\"OpenMPresult\": ");
+            SpMVResultCPU_outAsJSON(&openmpResult, out);
+            fprintf(out, "\n},\n");
+            ELLMatrix_free(ellMatrix);
+            Vector_pinned_memory_free(X);
+            Vector_pinned_memory_free(Y);
+            Vector_free(Z);
+            Vector_free(U);
+            COOMatrix_free(cooMatrix);
+            MTXParser_free(mtxParser);
+            fprintf(out, "{}\n]}\n");
+            print_status_bar(numDir, numDir, "");
+            fprintf(stderr, "\n");
+        } else {
+            ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(&lower);
+            if (!ellMatrix) {
+                perror("ELLMatrix_new()");
+                exit(EXIT_FAILURE);
+            }
+            CSRMatrix *csrMatrix = CSRMatrix_new(&higher);
+            if (!csrMatrix) {
+                perror("CSRMatrix_new()");
+                exit(EXIT_FAILURE);
+            }
+            SpMVResultCPU cpuResult;
+            SpMVResultCUDA gpuResult;
+            SpMVResultCUDA gpuCsrResult;
+            SpMVResultCPU openmpResult;
+            ELLMatrix_SpMV_GPU(ellMatrix, X, Y, &gpuResult);
+            CSRMatrix_SpMV_GPU(csrMatrix, X, Y, &gpuCsrResult);
+            ELLMatrix_SpMV_CPU(ellMatrix, X, Z, &cpuResult);
+            ELLMatrix_SpMV_OPENMP(ellMatrix, X, U, &openmpResult);
+            int successGPU = Vector_equals(Y, Z);
+            int successOpenMP = Vector_equals(Z, U);
+            fprintf(out, "{\n");
+            fprintf(out, "\"matrix\": \"%s\",\n", entry->d_name);
+            fprintf(out, "\"successGPU\": %s,\n", (successGPU) ? "true" : "false");
+            fprintf(out, "\"successOpenMP\": %s,\n", (successOpenMP) ? "true" : "false");
+            fprintf(out, "\"MatrixInfo\": ");
+            CSRMatrix_infoOutAsJSON(csrMatrix, out);
+            fprintf(out, ",\n");
+            fprintf(out, "\"CPUresult\": ");
+            SpMVResultCPU_outAsJSON(&cpuResult, out);
+            fprintf(out, ",\n");
+            fprintf(out, "\"GPUresult\": ");
+            SpMVResultCUDA_outAsJSON(&gpuResult, out);
+            fprintf(out, ",\n");
+            fprintf(out, "\"GPUCSRresult\": ");
+            SpMVResultCUDA_outAsJSON(&gpuCsrResult, out);
+            fprintf(out, ",\n");
+            fprintf(out, "\"OpenMPresult\": ");
+            SpMVResultCPU_outAsJSON(&openmpResult, out);
+            fprintf(out, "\n},\n");
+            ELLMatrix_free(ellMatrix);
+            CSRMatrix_free(csrMatrix);
+            Vector_pinned_memory_free(X);
+            Vector_pinned_memory_free(Y);
+            Vector_free(Z);
+            Vector_free(U);
+            COOMatrix_free(cooMatrix);
+            MTXParser_free(mtxParser);
+            fprintf(out, "{}\n]}\n");
+            print_status_bar(numDir, numDir, "");
+            fprintf(stderr, "\n");
         }
-        SpMVResultCPU cpuResult;
-        SpMVResultCUDA gpuResult;
-        SpMVResultCPU openmpResult;
-        ELLMatrix_SpMV_GPU(ellMatrix, X, Y, &gpuResult);
-        ELLMatrix_SpMV_CPU(ellMatrix, X, Z, &cpuResult);
-        ELLMatrix_SpMV_OPENMP(ellMatrix, X, U, &openmpResult);
-        int successGPU = Vector_equals(Y, Z);
-        int successOpenMP = Vector_equals(Z, U);
-        fprintf(out, "{\n");
-        fprintf(out, "\"matrix\": \"%s\",\n", entry->d_name);
-        fprintf(out, "\"successGPU\": %s,\n", (successGPU) ? "true" : "false");
-        fprintf(out, "\"successOpenMP\": %s,\n", (successOpenMP) ? "true" : "false");
-        fprintf(out, "\"MatrixInfo\": ");
-        CSRMatrix_infoOutAsJSON(csrMatrix, out);
-        fprintf(out, ",\n");
-        fprintf(out, "\"CPUresult\": ");
-        SpMVResultCPU_outAsJSON(&cpuResult, out);
-        fprintf(out, ",\n");
-        fprintf(out, "\"GPUresult\": ");
-        SpMVResultCUDA_outAsJSON(&gpuResult, out);
-        fprintf(out, ",\n");
-        fprintf(out, "\"OpenMPresult\": ");
-        SpMVResultCPU_outAsJSON(&openmpResult, out);
-        fprintf(out, "\n},\n");
-        ELLMatrix_free(ellMatrix);
-        CSRMatrix_free(csrMatrix);
-        Vector_pinned_memory_free(X);
-        Vector_pinned_memory_free(Y);
-        Vector_free(Z);
-        Vector_free(U);
-        COOMatrix_free(cooMatrix);
-        MTXParser_free(mtxParser);
+        return EXIT_SUCCESS;
     }
-    fprintf(out, "{}\n]}\n");
-    print_status_bar(numDir, numDir, "");
-    fprintf(stderr, "\n");
-    return EXIT_SUCCESS;
 }

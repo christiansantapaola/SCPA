@@ -30,12 +30,10 @@ int main(int argc, char *argv[]) {
         MTXParser_free(mtxParser);
         return EXIT_FAILURE;
     }
-    CSRMatrix *csrMatrix = CSRMatrix_new(cooMatrix);
-    ELLMatrix *ellMatrix = ELLMatrix_new(csrMatrix);
+    ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(cooMatrix);
     ELLMatrix_outAsJSON(ellMatrix, stdout);
     putc('\n', stdout);
     COOMatrix_free(cooMatrix);
-    CSRMatrix_free(csrMatrix);
     ELLMatrix_free(ellMatrix);
 
     return EXIT_SUCCESS;

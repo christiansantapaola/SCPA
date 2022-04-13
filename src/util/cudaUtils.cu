@@ -44,11 +44,12 @@ int doesItFitInGlobalMemory(cudaDeviceProp *prop, size_t size) {
     return size <= prop->totalGlobalMem;
 }
 
-void CudaUtils_getBestCudaParameters(unsigned int numRows, cudaDeviceProp *prop, BlockGridInfo *bestParams) {
+void CudaUtils_getBestCudaParameters(u_int64_t numRows, cudaDeviceProp *prop, BlockGridInfo *bestParams) {
     if (!bestParams || !prop) return;
     u_int64_t size = 0;
     for (size = 1; prop->warpSize * size < prop->maxThreadsPerBlock; size++);
     BlockGridInfo *infos = (BlockGridInfo *)malloc(size * sizeof(BlockGridInfo));
+    memset(infos, 0, size * sizeof(BlockGridInfo));
     for (u_int64_t i = 1; prop->warpSize * i < prop->maxThreadsPerBlock; i++) {
         infos[i - 1].maxThreadPerBlock = prop->maxThreadsPerBlock;
         infos[i - 1].maxBlockSizePerSM = prop->maxBlocksPerMultiProcessor;
