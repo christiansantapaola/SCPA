@@ -32,7 +32,7 @@ void Histogram_insert(Histogram *histogram, u_int64_t i) {
 }
 
 u_int64_t Histogram_getElemAtIndex(Histogram *histogram, u_int64_t i) {
-    if (i > histogram->size) {
+    if (i >= histogram->size) {
         return 0;
     }
     return histogram->hist[i].first;

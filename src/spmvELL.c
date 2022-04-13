@@ -132,14 +132,14 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
         if (ret) {
+            SpMVResultCPU cpuResult;
+            SpMVResultCUDA gpuResult;
+            SpMVResultCPU openmpResult;
             ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(cooMatrix);
             if (!ellMatrix) {
                 perror("ELLMatrix_new()");
                 exit(EXIT_FAILURE);
             }
-            SpMVResultCPU cpuResult;
-            SpMVResultCUDA gpuResult;
-            SpMVResultCPU openmpResult;
             ELLMatrix_SpMV_GPU(ellMatrix, X, Y, &gpuResult);
             ELLMatrix_SpMV_CPU(ellMatrix, X, Z, &cpuResult);
             ELLMatrix_SpMV_OPENMP(ellMatrix, X, U, &openmpResult);
@@ -164,6 +164,10 @@ int main(int argc, char *argv[]) {
             fprintf(out, "\n},\n");
             ELLMatrix_free(ellMatrix);
         } else {
+            SpMVResultCPU cpuResult;
+            SpMVResultCUDA gpuResult;
+            SpMVResultCUDA gpuCsrResult;
+            SpMVResultCPU openmpResult;
             ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(lower);
             if (!ellMatrix) {
                 perror("ELLMatrix_new()");
@@ -174,10 +178,6 @@ int main(int argc, char *argv[]) {
                 perror("CSRMatrix_new()");
                 exit(EXIT_FAILURE);
             }
-            SpMVResultCPU cpuResult;
-            SpMVResultCUDA gpuResult;
-            SpMVResultCUDA gpuCsrResult;
-            SpMVResultCPU openmpResult;
             ELLMatrix_SpMV_GPU(ellMatrix, X, Y, &gpuResult);
             CSRMatrix_SpMV_GPU(csrMatrix, X, Y, &gpuCsrResult);
             ELLMatrix_SpMV_CPU(ellMatrix, X, Z, &cpuResult);
@@ -203,8 +203,8 @@ int main(int argc, char *argv[]) {
             fprintf(out, "\"OpenMPresult\": ");
             SpMVResultCPU_outAsJSON(&openmpResult, out);
             fprintf(out, "\n},\n");
-            ELLMatrix_free(ellMatrix);
             CSRMatrix_free(csrMatrix);
+            ELLMatrix_free(ellMatrix);
         }
         Vector_pinned_memory_free(X);
         Vector_pinned_memory_free(Y);

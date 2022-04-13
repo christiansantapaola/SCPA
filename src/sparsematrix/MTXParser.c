@@ -105,8 +105,15 @@ MTXParser *MTXParser_new(char *path) {
         return NULL;
     }
     mtxParser->filename = strdup(path);
+    if (!mtxParser->filename) {
+        fclose(mtxParser->file);
+        free(mtxParser);
+        return NULL;
+    }
     mtxParser->file = fopen(path, "r");
     if (!mtxParser->file) {
+        free(mtxParser->filename);
+        free(mtxParser);
         return NULL;
     }
     mtxParser->currentLine = 0;

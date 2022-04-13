@@ -77,7 +77,7 @@ u_int64_t COOMatrix_maxNumberOfElem(COOMatrix *matrix) {
 
 int COOMatrix_split(COOMatrix *matrix, COOMatrix *first, COOMatrix *second, u_int64_t threshold) {
     if (!matrix || !first || !second) return -1;
-    Histogram *rowsElem = Histogram_new(matrix->row_size);
+    Histogram *rowsElem = Histogram_new(matrix->row_size + 1);
     first->row_size = matrix->row_size;
     first->col_size = matrix->col_size;
     first->num_non_zero_elements = 0;
@@ -134,10 +134,4 @@ int COOMatrix_split(COOMatrix *matrix, COOMatrix *first, COOMatrix *second, u_in
     }
     Histogram_free(rowsElem);
     return 0;
-
-
-
-
-
-
 }

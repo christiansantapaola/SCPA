@@ -25,20 +25,22 @@ int main(int argc, char *argv[]) {
         MTXParser_free(mtxParser);
         return EXIT_FAILURE;
     }
-    COOMatrix first, second;
-    int ret = COOMatrix_split(cooMatrix, &first, &second, 64);
-    if (ret == -1) {
+    Vector* X = Vector_pinned_memory_new(cooMatrix->col_size);
+    Vector* Y = Vector_new(cooMatrix->row_size);
+    Vector* Z = Vector_pinned_memory_new(cooMatrix->row_size);
+    Vector_set(X, 1.0f);
+    Vector_set(Y, 0.0f);
+    Vector_set(Z, 0.0f);
+    COOMatrix *first, *second;
+    first = COOMatrix_new();
+    second = COOMatrix_new();
+    int noSplit = COOMatrix_split(cooMatrix, first, second, 64);
+    if (noSplit == -1) {
         fprintf(stderr, "COOMatrix_split failed!");
         exit(EXIT_FAILURE);
     }
-    if (ret) {
+    if (noSplit) {
         ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(cooMatrix);
-        Vector* X = Vector_pinned_memory_new(ellMatrix->col_size);
-        Vector* Y = Vector_new(ellMatrix->row_size);
-        Vector* Z = Vector_pinned_memory_new(ellMatrix->row_size);
-        Vector_set(X, 1.0f);
-        Vector_set(Y, 0.0f);
-        Vector_set(Z, 0.0f);
         SpMVResultCPU cpuResult;
         ELLMatrix_SpMV_CPU(ellMatrix, X, Y, &cpuResult);
         SpMVResultCUDA gpuResult;
@@ -56,21 +58,10 @@ int main(int argc, char *argv[]) {
         fprintf(stdout, "\"GPUresult\": ");
         SpMVResultCUDA_outAsJSON(&gpuResult, stdout);
         fprintf(stdout, "\n}\n");
-        Vector_pinned_memory_free(Z);
-        Vector_free(Y);
-        Vector_pinned_memory_free(X);
         ELLMatrix_free(ellMatrix);
-        COOMatrix_free(cooMatrix);
-
     } else {
-        ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(&first);
-        CSRMatrix *csrMatrix = CSRMatrix_new(&second);
-        Vector* X = Vector_pinned_memory_new(ellMatrix->col_size);
-        Vector* Y = Vector_new(ellMatrix->row_size);
-        Vector* Z = Vector_pinned_memory_new(ellMatrix->row_size);
-        Vector_set(X, 1.0f);
-        Vector_set(Y, 0.0f);
-        Vector_set(Z, 0.0f);
+        ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(first);
+        CSRMatrix *csrMatrix = CSRMatrix_new(second);
         SpMVResultCPU cpuResult;
         ELLMatrix_SpMV_CPU(ellMatrix, X, Y, &cpuResult);
         SpMVResultCUDA gpuResult;
@@ -93,11 +84,15 @@ int main(int argc, char *argv[]) {
         fprintf(stdout, "\"GPUResultCSR\": ");
         SpMVResultCUDA_outAsJSON(&gpuResultcsr, stdout);
         fprintf(stdout, "\n}\n");
-        Vector_pinned_memory_free(Z);
-        Vector_free(Y);
-        Vector_pinned_memory_free(X);
         ELLMatrix_free(ellMatrix);
-        COOMatrix_free(cooMatrix);
+        CSRMatrix_free(csrMatrix);
     }
+    COOMatrix_free(first);
+    COOMatrix_free(second);
+    Vector_pinned_memory_free(Z);
+    Vector_free(Y);
+    Vector_pinned_memory_free(X);
+    COOMatrix_free(cooMatrix);
+    MTXParser_free(mtxParser);
     return EXIT_SUCCESS;
 }
