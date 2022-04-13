@@ -159,9 +159,6 @@ int main(int argc, char *argv[]) {
             Vector_free(U);
             COOMatrix_free(cooMatrix);
             MTXParser_free(mtxParser);
-            fprintf(out, "{}\n]}\n");
-            print_status_bar(numDir, numDir, "");
-            fprintf(stderr, "\n");
         } else {
             ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(&lower);
             if (!ellMatrix) {
@@ -210,10 +207,10 @@ int main(int argc, char *argv[]) {
             Vector_free(U);
             COOMatrix_free(cooMatrix);
             MTXParser_free(mtxParser);
-            fprintf(out, "{}\n]}\n");
-            print_status_bar(numDir, numDir, "");
-            fprintf(stderr, "\n");
         }
     }
+    fprintf(out, "{}\n]}\n");
+    print_status_bar(numDir, numDir, "");
+    fprintf(stderr, "\n");
     return EXIT_SUCCESS;
 }
