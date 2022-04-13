@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
         COOMatrix *lower, *higher;
         lower = COOMatrix_new();
         higher = COOMatrix_new();
-        int ret = COOMatrix_split(cooMatrix, &lower, &higher, MATRIX_SPLIT_THRESHOLD);
+        int ret = COOMatrix_split(cooMatrix, lower, higher, MATRIX_SPLIT_THRESHOLD);
         if (ret == -1) {
             fprintf(stderr, "error in COOMatrix_split:\n");
             exit(EXIT_FAILURE);
