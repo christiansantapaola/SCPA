@@ -96,6 +96,7 @@ int COOMatrix_split(COOMatrix *matrix, COOMatrix *first, COOMatrix *second, u_in
         }
     }
     if (first->num_non_zero_elements == 0 || second->num_non_zero_elements == 0) {
+        Histogram_free(rowsElem);
         return 1;
     }
     first->row_index = malloc(first->num_non_zero_elements * sizeof(u_int64_t));
@@ -131,6 +132,7 @@ int COOMatrix_split(COOMatrix *matrix, COOMatrix *first, COOMatrix *second, u_in
             spos++;
         }
     }
+    Histogram_free(rowsElem);
     return 0;
 
 

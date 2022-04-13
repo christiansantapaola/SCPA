@@ -12,8 +12,8 @@
 size_t tokenize(char *inputString, const char *delim, char **argv, size_t maxtokens)
 {
     size_t ntokens = 0;
-    char *tokenized = strdup(inputString);
-    //char *tokenized = inputString;
+    // char *tokenized = strdup(inputString);
+    char *tokenized = inputString;
     if(tokenized) {
         argv[0] = tokenized;
         while(*tokenized) {

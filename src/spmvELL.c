@@ -117,7 +117,15 @@ int main(int argc, char *argv[]) {
         Vector_set(U, 0.0f);
         COOMatrix *lower, *higher;
         lower = COOMatrix_new();
+        if (!lower) {
+            perror("COOMatrix_new()");
+            exit(EXIT_FAILURE);
+        }
         higher = COOMatrix_new();
+        if (!higher) {
+            perror("COOMatrix_new()");
+            exit(EXIT_FAILURE);
+        }
         int ret = COOMatrix_split(cooMatrix, lower, higher, MATRIX_SPLIT_THRESHOLD);
         if (ret == -1) {
             fprintf(stderr, "error in COOMatrix_split:\n");
