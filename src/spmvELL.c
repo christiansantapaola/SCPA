@@ -214,6 +214,6 @@ int main(int argc, char *argv[]) {
             print_status_bar(numDir, numDir, "");
             fprintf(stderr, "\n");
         }
-        return EXIT_SUCCESS;
     }
+    return EXIT_SUCCESS;
 }
