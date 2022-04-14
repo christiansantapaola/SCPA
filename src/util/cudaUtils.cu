@@ -9,7 +9,7 @@ void CudaUtils_getDeviceProp(int device, cudaDeviceProp *prop) {
     checkCudaErrors(cudaGetDeviceProperties(prop, device));
 
 }
-int CudaUtils_getBestDevice() {
+int CudaUtils_getBestDevice(size_t memoryUsed) {
     int numDevices;
     cudaDeviceProp *props;
     checkCudaErrors(cudaGetDeviceCount(&numDevices));
@@ -17,10 +17,13 @@ int CudaUtils_getBestDevice() {
     for (int i = 0; i < numDevices; i++) {
         CudaUtils_getDeviceProp(i, &props[i]);
     }
-    int bestDev = 0;
+    int bestDev = -1;
     int numSM = 0;
     int clockRate = 0;
     for (int i = 0; i < numDevices; i++) {
+        if (memoryUsed > props[i].totalGlobalMem) {
+            continue;
+        }
         if (numSM < props[i].multiProcessorCount) {
             numSM = props[i].multiProcessorCount;
             bestDev = i;

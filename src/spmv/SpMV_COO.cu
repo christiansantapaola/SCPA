@@ -39,7 +39,11 @@ void COOMatrix_SpMV_GPU(const COOMatrix *matrix, const Vector *x, Vector *y, SpM
         memset(result, 0, sizeof(*result));
     }
     memoryUsed = (matrix->num_non_zero_elements + x->size + y->size) * sizeof(float) +   sizeof(u_int64_t) * (2 * matrix->num_non_zero_elements);
-    int bestDev = CudaUtils_getBestDevice();
+    int bestDev = CudaUtils_getBestDevice(memoryUsed);
+    if (bestDev == -1) {
+        fprintf(stderr,"%s\n", "NOT ENOUGH MEMORY");
+        exit(EXIT_FAILURE);
+    }
     CudaUtils_setDevice(bestDev);
     cudaDeviceProp prop;
     BlockGridInfo blockGridInfo;

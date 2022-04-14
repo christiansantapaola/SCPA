@@ -20,7 +20,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 void CudaUtils_setDevice(int device);
 void CudaUtils_getDeviceProp(int device, cudaDeviceProp *prop);
-int CudaUtils_getBestDevice();
+int CudaUtils_getBestDevice(size_t memoryUsed);
 void CudaUtils_getBestCudaParameters(u_int64_t numUnits, cudaDeviceProp *prop, BlockGridInfo *bestParams);
 
 

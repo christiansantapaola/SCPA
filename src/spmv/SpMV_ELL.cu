@@ -41,8 +41,12 @@ void ELLMatrix_SpMV_GPU(const ELLMatrix *matrix,const Vector *x, Vector *y, SpMV
     if (result) {
         memset(result, 0, sizeof(*result));
     }
-    memoryUsed = (matrix->num_non_zero_elements + x->size + y->size) * sizeof(float) +   sizeof(u_int64_t) * (matrix->row_size + 1 + matrix->num_non_zero_elements);
-    int bestDev = CudaUtils_getBestDevice();
+    memoryUsed = (matrix->data_size + x->size + y->size) * sizeof(float) +   sizeof(u_int64_t) * (matrix->data_size);
+    int bestDev = CudaUtils_getBestDevice(memoryUsed);
+    if (bestDev == -1) {
+        fprintf(stderr,"%s\n", "NOT ENOUGH MEMORY");
+        exit(EXIT_FAILURE);
+    }
     CudaUtils_setDevice(bestDev);
     cudaDeviceProp prop;
     BlockGridInfo blockGridInfo;

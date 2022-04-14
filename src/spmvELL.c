@@ -151,6 +151,7 @@ int main(int argc, char *argv[]) {
             fprintf(out, "\"successGPU\": %s,\n", (successGPU) ? "true" : "false");
             fprintf(out, "\"successOpenMP\": %s,\n", (successOpenMP) ? "true" : "false");
             fprintf(out, "\"MatrixInfo\": ");
+            COOMatrix_infoOutAsJSON(cooMatrix, out);
             fprintf(out, ",\n");
             fprintf(out, "\"CPUresult\": ");
             SpMVResultCPU_outAsJSON(&cpuResult, out);
