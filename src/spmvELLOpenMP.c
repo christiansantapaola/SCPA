@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
         SpMVResultCPU_outAsJSON(&cpuResult, stdout);
         fprintf(stdout, ",\n");
         fprintf(stdout, "\"OpenMPResult\": ");
-        SpMVResultCUDA_outAsJSON(&openmpResult, stdout);
+        SpMVResultCPU_outAsJSON(&openmpResult, stdout);
         fprintf(stdout, "\n}\n");
         ELLMatrix_free(ellMatrix);
     } else {
