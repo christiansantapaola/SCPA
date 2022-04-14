@@ -10,6 +10,7 @@
 #include "SpMV.h"
 
 #define PROGRAM_NAME "spmvCSRCuda"
+#define USE_PINNED_MEMORY 0
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -27,14 +28,14 @@ int main(int argc, char *argv[]) {
         MTXParser_free(mtxParser);
         return EXIT_FAILURE;
     }
-    CSRMatrix *csrMatrix = CSRMatrix_pinned_memory_new(cooMatrix);
+    CSRMatrix *csrMatrix = CSRMatrix_new_wpm(cooMatrix);
     if (!csrMatrix) {
-        perror("CSRMatrix_pinned_memory_new()");
+        perror("CSRMatrix_new_wpm()");
         return EXIT_FAILURE;
     }
-    Vector* X = Vector_pinned_memory_new(csrMatrix->col_size);
+    Vector* X = Vector_new_wpm(csrMatrix->col_size);
     if (!X) {
-        perror("Vector_pinned_memory_new()");
+        perror("Vector_new_wpm()");
         return EXIT_FAILURE;
     }
     Vector* Y = Vector_new(csrMatrix->row_size);
@@ -42,9 +43,9 @@ int main(int argc, char *argv[]) {
         perror("Vector_new");
         return EXIT_FAILURE;
     }
-    Vector* Z = Vector_pinned_memory_new(csrMatrix->row_size);
+    Vector* Z = Vector_new_wpm(csrMatrix->row_size);
     if (!Z) {
-        perror("Vector_pinned_memory_new");
+        perror("Vector_new_wpm");
         return EXIT_FAILURE;
     }
     Vector_set(X, 1.0f);
@@ -68,10 +69,10 @@ int main(int argc, char *argv[]) {
         SpMVResultCUDA_outAsJSON(&gpuResult, stdout);
     }
     fprintf(stdout, "\n}\n");
-    Vector_pinned_memory_free(Z);
+    Vector_free_wpm(Z);
     Vector_free(Y);
-    Vector_pinned_memory_free(X);
-    CSRMatrix_pinned_memory_free(csrMatrix);
+    Vector_free_wpm(X);
+    CSRMatrix_free_wpm(csrMatrix);
     COOMatrix_free(cooMatrix);
     return EXIT_SUCCESS;
 }

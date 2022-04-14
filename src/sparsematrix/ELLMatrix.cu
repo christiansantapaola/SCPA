@@ -6,7 +6,7 @@ extern "C" {
 #include <cuda.h>
 #include "cudaUtils.cuh"
 
-extern "C" ELLMatrix *ELLMatrix_pinned_memory_new(CSRMatrix *csrMatrix) {
+extern "C" ELLMatrix *ELLMatrix_new_wpm(CSRMatrix *csrMatrix) {
     if (!csrMatrix) return NULL;
     ELLMatrix *ellMatrix = (ELLMatrix *) malloc(sizeof(ELLMatrix));
     ellMatrix->row_size = csrMatrix->row_size;
@@ -40,9 +40,42 @@ extern "C" ELLMatrix *ELLMatrix_pinned_memory_new(CSRMatrix *csrMatrix) {
     }
     return ellMatrix;
 }
-extern "C" void ELLMatrix_pinned_memory_free(ELLMatrix *ellMatrix) {
+extern "C" void ELLMatrix_free_wpm(ELLMatrix *ellMatrix) {
     if (!ellMatrix) return;
     checkCudaErrors(cudaFreeHost(ellMatrix->data));
     checkCudaErrors(cudaFreeHost(ellMatrix->col_index));
     free(ellMatrix);
+}
+
+extern "C" ELLMatrix *ELLMatrix_new_fromCOO_wpm(COOMatrix *cooMatrix) {
+    if (!cooMatrix) return NULL;
+    ELLMatrix *ellMatrix = (ELLMatrix *) malloc(sizeof(ELLMatrix));
+    ellMatrix->row_size = cooMatrix->row_size;
+    ellMatrix->col_size = cooMatrix->col_size;
+    ellMatrix->num_non_zero_elements = cooMatrix->num_non_zero_elements;
+
+    // find the the maximum number of non zero elements in a row.
+    ellMatrix->num_elem = COOMatrix_maxNumberOfElem(cooMatrix);
+    ellMatrix->data_row_size = ellMatrix->row_size;
+    ellMatrix->data_col_size = ellMatrix->num_elem;
+    ellMatrix->data_size = ellMatrix->row_size * ellMatrix->num_elem;
+
+    checkCudaErrors(cudaHostAlloc(&ellMatrix->data, ellMatrix->data_size * sizeof(float), cudaHostAllocDefault));
+    checkCudaErrors(cudaHostAlloc(&ellMatrix->col_index, ellMatrix->data_size * sizeof(u_int64_t), cudaHostAllocDefault));
+    // add padding;
+    memset(ellMatrix->data, 0, ellMatrix->data_size * sizeof(float));
+    memset(ellMatrix->col_index, 0, ellMatrix->data_size * sizeof(u_int64_t));
+    Histogram *elemInserted = Histogram_new(cooMatrix->row_size + 1);
+    for (u_int64_t i = 0; i < cooMatrix->num_non_zero_elements; i++) {
+        u_int64_t row = cooMatrix->row_index[i];
+        u_int64_t col = cooMatrix->col_index[i];
+        float data = cooMatrix->data[i];
+        u_int64_t base = row * ellMatrix->num_elem;
+        u_int64_t offset = Histogram_getElemAtIndex(elemInserted, row);
+        ellMatrix->data[base + offset] = data;
+        ellMatrix->col_index[base + offset] = col;
+        Histogram_insert(elemInserted, row);
+    }
+    Histogram_free(elemInserted);
+    return ellMatrix;
 }

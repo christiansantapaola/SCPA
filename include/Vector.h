@@ -15,8 +15,8 @@ typedef struct Vector {
 
 Vector *Vector_new(u_int64_t size);
 void Vector_free(Vector *vector);
-Vector *Vector_pinned_memory_new(unsigned int size);
-void Vector_pinned_memory_free(Vector *vector);
+Vector *Vector_new_wpm(unsigned int size);
+void Vector_free_wpm(Vector *vector);
     void Vector_set(Vector *vector, float value);
     void Vector_outAsJSON(Vector *vector, FILE *out);
     int Vector_equals(const Vector *v1, const Vector *v2);

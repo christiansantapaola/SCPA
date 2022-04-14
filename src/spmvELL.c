@@ -87,16 +87,16 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "MTXParser_parser(%p) failed\n", mtxParser);
             exit(EXIT_FAILURE);
         }
-        Vector *X = Vector_pinned_memory_new(cooMatrix->row_size);
+        Vector *X = Vector_new_wpm(cooMatrix->row_size);
         if (!X) {
-            fprintf(stderr, "Vector_pinned_memory_new(%lu)", cooMatrix->row_size);
+            fprintf(stderr, "Vector_new_wpm(%lu)", cooMatrix->row_size);
             perror("");
             exit(EXIT_FAILURE);
         }
         Vector_set(X, 1.0f);
-        Vector *Y = Vector_pinned_memory_new(cooMatrix->col_size);
+        Vector *Y = Vector_new_wpm(cooMatrix->col_size);
         if (!Y) {
-            fprintf(stderr, "Vector_pinned_memory_new(%lu)", cooMatrix->col_size);
+            fprintf(stderr, "Vector_new_wpm(%lu)", cooMatrix->col_size);
             perror("");
             exit(EXIT_FAILURE);
         }
@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
             perror("COOMatrix_new()");
             exit(EXIT_FAILURE);
         }
-        int ret = COOMatrix_split(cooMatrix, lower, higher, MATRIX_SPLIT_THRESHOLD);
+        int ret = COOMatrix_split_wpm(cooMatrix, lower, higher, MATRIX_SPLIT_THRESHOLD);
         if (ret == -1) {
             fprintf(stderr, "error in COOMatrix_split:\n");
             exit(EXIT_FAILURE);
@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
             SpMVResultCPU cpuResult;
             SpMVResultCUDA gpuResult;
             SpMVResultCPU openmpResult;
-            ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(cooMatrix);
+            ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO_wpm(cooMatrix);
             if (!ellMatrix) {
                 perror("ELLMatrix_new()");
                 exit(EXIT_FAILURE);
@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
             COOMatrix_SpMV_CPU(cooMatrix, X, Z, &cpuResult);
             ELLMatrix_SpMV_OPENMP(ellMatrix, X, U, &openmpResult);
             ELLMatrix_transpose(ellMatrix);
-            ELLMatrix_SpMV_GPU(ellMatrix, X, Y, &gpuResult);
+            ELLMatrix_SpMV_GPU_wpm(ellMatrix, X, Y, &gpuResult);
             int successGPU = Vector_equals(Y, Z);
             int successOpenMP = Vector_equals(U, Z);
             fprintf(out, "{\n");
@@ -162,12 +162,12 @@ int main(int argc, char *argv[]) {
             fprintf(out, "\"OpenMPresult\": ");
             SpMVResultCPU_outAsJSON(&openmpResult, out);
             fprintf(out, "\n},\n");
-            ELLMatrix_free(ellMatrix);
+            ELLMatrix_free_wpm(ellMatrix);
         } else {
             SpMVResultCPU cpuResult;
             SpMVResultCUDA gpuResult, gpuCOOResult;
             SpMVResultCPU openmpELLResult, openmpCOOResult;
-            ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(lower);
+            ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO_wpm(lower);
             if (!ellMatrix) {
                 perror("ELLMatrix_new()");
                 exit(EXIT_FAILURE);
@@ -176,10 +176,8 @@ int main(int argc, char *argv[]) {
             ELLMatrix_SpMV_OPENMP(ellMatrix, X, U, &openmpELLResult);
             COOMatrix_SpMV_OPENMP(higher, X, U, &openmpCOOResult);
             ELLMatrix_transpose(ellMatrix);
-            ELLMatrix_SpMV_GPU(ellMatrix, X, Y, &gpuResult);
-            COOMatrix_SpMV_GPU(higher, X, Y, &gpuCOOResult);
-
-
+            ELLMatrix_SpMV_GPU_wpm(ellMatrix, X, Y, &gpuResult);
+            COOMatrix_SpMV_GPU_wpm(higher, X, Y, &gpuCOOResult);
             int successGPU = Vector_equals(Y, Z);
             int successOpenMP = Vector_equals(U, Z);
             fprintf(out, "{\n");
@@ -204,14 +202,14 @@ int main(int argc, char *argv[]) {
             fprintf(out, "\"OpenMPCOOresult\": ");
             SpMVResultCPU_outAsJSON(&openmpCOOResult, out);
             fprintf(out, "\n},\n");
-            ELLMatrix_free(ellMatrix);
+            ELLMatrix_free_wpm(ellMatrix);
         }
-        Vector_pinned_memory_free(X);
-        Vector_pinned_memory_free(Y);
+        Vector_free_wpm(X);
+        Vector_free_wpm(Y);
         Vector_free(Z);
         Vector_free(U);
         COOMatrix_free(lower);
-        COOMatrix_free(higher);
+        COOMatrix_free_wpm(higher);
         COOMatrix_free(cooMatrix);
         MTXParser_free(mtxParser);
     }

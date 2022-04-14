@@ -83,16 +83,16 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "MTXParser_parser(%p) failed\n", mtxParser);
             exit(EXIT_FAILURE);
         }
-        Vector *X = Vector_pinned_memory_new(cooMatrix->row_size);
+        Vector *X = Vector_new_wpm(cooMatrix->row_size);
         if (!X) {
-            fprintf(stderr, "Vector_pinned_memory_new(%lu)", cooMatrix->row_size);
+            fprintf(stderr, "Vector_new_wpm(%lu)", cooMatrix->row_size);
             perror("");
             exit(EXIT_FAILURE);
         }
         Vector_set(X, 1.0f);
-        Vector *Y = Vector_pinned_memory_new(cooMatrix->col_size);
+        Vector *Y = Vector_new_wpm(cooMatrix->col_size);
         if (!Y) {
-            fprintf(stderr, "Vector_pinned_memory_new(%lu)", cooMatrix->col_size);
+            fprintf(stderr, "Vector_new_wpm(%lu)", cooMatrix->col_size);
             perror("");
             exit(EXIT_FAILURE);
         }
@@ -111,9 +111,9 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
         Vector_set(U, 0.0f);
-        CSRMatrix *csrMatrix = CSRMatrix_pinned_memory_new(cooMatrix);
+        CSRMatrix *csrMatrix = CSRMatrix_new_wpm(cooMatrix);
         if (!csrMatrix) {
-            perror("CSRMatrix_pinned_memory_new()");
+            perror("CSRMatrix_new_wpm()");
             exit(EXIT_FAILURE);
 
         }
@@ -141,9 +141,9 @@ int main(int argc, char *argv[]) {
         fprintf(out, "\"OpenMPresult\": ");
         SpMVResultCPU_outAsJSON(&openmpResult, out);
         fprintf(out, "\n},\n");
-        CSRMatrix_pinned_memory_free(csrMatrix);
-        Vector_pinned_memory_free(X);
-        Vector_pinned_memory_free(Y);
+        CSRMatrix_free_wpm(csrMatrix);
+        Vector_free_wpm(X);
+        Vector_free_wpm(Y);
         Vector_free(Z);
         COOMatrix_free(cooMatrix);
         MTXParser_free(mtxParser);

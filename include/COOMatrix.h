@@ -25,4 +25,7 @@ void COOMatrix_infoOutAsJSON(COOMatrix *matrix, FILE *out);
 u_int64_t COOMatrix_maxNumberOfElem(COOMatrix *matrix);
 int COOMatrix_split(const COOMatrix *matrix, COOMatrix *first, COOMatrix *second, u_int64_t threshold);
 
+void COOMatrix_free_wpm(COOMatrix *matrix);
+int COOMatrix_split_wpm(const COOMatrix *matrix, COOMatrix *first, COOMatrix *second, u_int64_t threshold);
+
 #endif //SPARSEMATRIX_COOMATRIX_H

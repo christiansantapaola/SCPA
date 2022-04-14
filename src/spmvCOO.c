@@ -24,14 +24,14 @@ int main(int argc, char *argv[]) {
     }
     Vector *X = Vector_new(matrix->row_size);
     if (!X) {
-        fprintf(stderr, "Vector_pinned_memory_new(%lu)", matrix->row_size);
+        fprintf(stderr, "Vector_new_wpm(%lu)", matrix->row_size);
         perror("");
         exit(EXIT_FAILURE);
     }
     Vector_set(X, 1.0f);
     Vector *Y = Vector_new(matrix->col_size);
     if (!Y) {
-        fprintf(stderr, "Vector_pinned_memory_new(%lu)", matrix->col_size);
+        fprintf(stderr, "Vector_new_wpm(%lu)", matrix->col_size);
         perror("");
         exit(EXIT_FAILURE);
     }

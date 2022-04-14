@@ -105,6 +105,7 @@ add_executable(spmvELLCuda
         src/sparsematrix/ELLMatrix.c
         src/sparsematrix/ELLMatrix.cu
         src/sparsematrix/COOMatrix.c
+        src/sparsematrix/COOMatrix.cu
         src/sparsematrix/Vector.c
         src/sparsematrix/Vector.cu
         src/sparsematrix/MTXParser.c
@@ -183,8 +184,8 @@ add_executable(spmvELL
         src/spmvELL.c
         src/sparsematrix/ELLMatrix.c
         src/sparsematrix/ELLMatrix.cu
-        src/sparsematrix/CSRMatrix.c
         src/sparsematrix/COOMatrix.c
+        src/sparsematrix/COOMatrix.cu
         src/sparsematrix/Vector.c
         src/sparsematrix/Vector.cu
         src/sparsematrix/MTXParser.c
