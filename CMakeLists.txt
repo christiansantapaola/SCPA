@@ -133,6 +133,7 @@ add_executable(spmvELLOpenMP
         src/spmv/SpMVResult.c
         src/spmv/SpMV.c
         src/spmv/SpMV_ELL_openmp.c
+        src/spmv/SpMV_COO_openmp.c
         src/util/BlockGridInfo.c)
 
 target_link_libraries(spmvELLOpenMP OpenMP::OpenMP_C)
@@ -171,6 +172,7 @@ add_executable(spmvCSR
         src/spmv/SpMVResult.c
         src/spmv/SpMV.c
         src/spmv/SpMV_ELL_openmp.c
+        src/spmv/SpMV_COO_openmp.c
         src/util/BlockGridInfo.c)
 
 target_link_libraries(spmvCSR ${CUDA_LIBRARIES} OpenMP::OpenMP_C)
@@ -193,6 +195,7 @@ add_executable(spmvELL
         src/spmv/SpMV_COO.cu
         src/spmv/SpMV_ELL.cu
         src/spmv/SpMV_ELL_openmp.c
+        src/spmv/SpMV_COO_openmp.c
         src/spmv/SpMVResult.c
         lib/mmio/src/mmio.c
         )
