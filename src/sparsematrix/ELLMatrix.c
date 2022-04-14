@@ -77,7 +77,7 @@ ELLMatrix *ELLMatrix_new_fromCOO(COOMatrix *cooMatrix) {
     // add padding;
     memset(ellMatrix->data, 0, ellMatrix->data_size * sizeof(float));
     memset(ellMatrix->col_index, 0, ellMatrix->data_size * sizeof(u_int64_t));
-    Histogram *elemInserted = Histogram_new(cooMatrix->row_size);
+    Histogram *elemInserted = Histogram_new(cooMatrix->row_size + 1);
     for (u_int64_t i = 0; i < cooMatrix->num_non_zero_elements; i++) {
         u_int64_t row = cooMatrix->row_index[i];
         u_int64_t col = cooMatrix->col_index[i];

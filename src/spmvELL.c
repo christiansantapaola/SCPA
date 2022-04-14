@@ -140,9 +140,10 @@ int main(int argc, char *argv[]) {
                 perror("ELLMatrix_new()");
                 exit(EXIT_FAILURE);
             }
-            ELLMatrix_SpMV_GPU(ellMatrix, X, Y, &gpuResult);
-            ELLMatrix_SpMV_CPU(ellMatrix, X, Z, &cpuResult);
+            COOMatrix_SpMV_CPU(cooMatrix, X, Z, &cpuResult);
             ELLMatrix_SpMV_OPENMP(ellMatrix, X, U, &openmpResult);
+            ELLMatrix_transpose(ellMatrix);
+            ELLMatrix_SpMV_GPU(ellMatrix, X, Y, &gpuResult);
             int successGPU = Vector_equals(Y, Z);
             int successOpenMP = Vector_equals(Z, U);
             fprintf(out, "{\n");
@@ -178,12 +179,18 @@ int main(int argc, char *argv[]) {
                 perror("CSRMatrix_new()");
                 exit(EXIT_FAILURE);
             }
+
+            COOMatrix_SpMV_CPU(cooMatrix, X, Z, &cpuResult);
+            ELLMatrix_SpMV_OPENMP(ellMatrix, X, U, &openmpResult);
+            CSRMatrix_SpMV_OPENMP(csrMatrix, X, U, &openmpResult);
+            ELLMatrix_transpose(ellMatrix);
             ELLMatrix_SpMV_GPU(ellMatrix, X, Y, &gpuResult);
             CSRMatrix_SpMV_GPU(csrMatrix, X, Y, &gpuCsrResult);
-            ELLMatrix_SpMV_CPU(ellMatrix, X, Z, &cpuResult);
-            ELLMatrix_SpMV_OPENMP(ellMatrix, X, U, &openmpResult);
+
+
+
             int successGPU = Vector_equals(Y, Z);
-            int successOpenMP = Vector_equals(Z, U);
+            int successOpenMP = Vector_equals(U, Z);
             fprintf(out, "{\n");
             fprintf(out, "\"matrix\": \"%s\",\n", entry->d_name);
             fprintf(out, "\"successGPU\": %s,\n", (successGPU) ? "true" : "false");
