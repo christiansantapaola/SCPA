@@ -25,7 +25,7 @@ int Vector_equals(const Vector *v1, const Vector *v2) {
     if (!areSameSize) return 0;
     if (areSameBuffer) return 1;
     for (u_int64_t i = 0; i < v1->size; i++) {
-        if (fabsf(v1->data[i] - v2->data[i]) > 0.000001) {
+        if (fabsf(v1->data[i] - v2->data[i]) > VECTOR_PRECISION) {
             return 0;
         }
     }

@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <memory.h>
 
+#define VECTOR_PRECISION 0.00001
 
 typedef struct Vector {
     float *data;
