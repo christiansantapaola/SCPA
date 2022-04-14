@@ -39,7 +39,7 @@ u_int64_t Histogram_getElemAtIndex(Histogram *histogram, u_int64_t i) {
 }
 
 void Histogram_outAsJSON(Histogram *histogram, FILE *out) {
-    fprintf(out, "%s\n", "{ ");
+    fprintf(out, "%s\n", "{");
     fprintf(out, "%s: %lu,\n", "\"size\"",  histogram->size);
     fprintf(out, "%s: [ ", "\"hist\"");
     for (u_int64_t i=0; i < histogram->size - 1; i++) {

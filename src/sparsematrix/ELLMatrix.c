@@ -125,7 +125,7 @@ void ELLMatrix_outAsJSON(ELLMatrix *matrix, FILE *out) {
         fprintf(out, "{}");
         return;
     }
-    fprintf(out, "%s\n", "{ ");
+    fprintf(out, "%s\n", "{");
     fprintf(out, "%s: %lu,\n", "\"row size\"", matrix->row_size);
     fprintf(out, "%s: %lu,\n", "\"col size\"", matrix->col_size);
     fprintf(out, "%s: %lu,\n", "\"num_non_zero_elements\"", matrix->num_non_zero_elements);
@@ -148,7 +148,7 @@ void ELLMatrix_infoOutAsJSON(ELLMatrix *matrix, FILE *out) {
         fprintf(out, "{}");
         return;
     }
-    fprintf(out, "%s\n", "{ ");
+    fprintf(out, "%s\n", "{");
     fprintf(out, "%s: %lu,\n", "\"row size\"",  matrix->row_size);
     fprintf(out, "%s: %lu,\n", "\"col size\"",  matrix->col_size);
     fprintf(out, "%s: %lu,\n", "\"num_non_zero_elements\"",  matrix->num_non_zero_elements);

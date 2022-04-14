@@ -2,7 +2,7 @@
 
 void BlockGridInfo_outAsJSON(BlockGridInfo *blockGridInfo, FILE *out) {
     if (!blockGridInfo || !out) return;
-    fprintf(out, "%s\n", "{ ");
+    fprintf(out, "%s\n", "{");
     fprintf(out, "%s: %zu,\n", "\"blockSize\"",  blockGridInfo->blockSize);
     fprintf(out, "%s: %zu,\n", "\"gridSize\"",  blockGridInfo->gridSize);
     fprintf(out, "%s: %f,\n", "\"utilizationSM\"",  blockGridInfo->utilizationSM);

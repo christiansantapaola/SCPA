@@ -44,7 +44,7 @@ void Vector_outAsJSON(Vector *vector, FILE *out) {
     if (!vector) {
         fprintf(out, "{}");
     }
-    fprintf(out, "%s\n", "{ ");
+    fprintf(out, "%s\n", "{");
     fprintf(out, "%s: %lu,\n", "\"size\"",  vector->size);
     fprintf(out, "%s: [ ", "\"data\"");
     for (u_int64_t i = 0; i < vector->size - 1; i++) {
