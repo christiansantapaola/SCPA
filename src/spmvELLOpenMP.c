@@ -73,10 +73,10 @@ int main(int argc, char *argv[]) {
         SpMVResultCPU_outAsJSON(&cpuResult, stdout);
         fprintf(stdout, ",\n");
         fprintf(stdout, "\"GPUresult\": ");
-        SpMVResultCUDA_outAsJSON(&gpuResult, stdout);
+        SpMVResultCPU_outAsJSON(&openmpELL, stdout);
         fprintf(stdout, ",\n");
         fprintf(stdout, "\"GPUCOOResult\": ");
-        SpMVResultCUDA_outAsJSON(&gpuCOOResult, stdout);
+        SpMVResultCPU_outAsJSON(&openmpCOO, stdout);
         fprintf(stdout, "\n}\n");
         ELLMatrix_free(ellMatrix);
     }
