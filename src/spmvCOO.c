@@ -6,7 +6,7 @@
 #include "Vector.h"
 #include "SpMV.h"
 
-#define PROGRAM_NAME "analyzeMatrix"
+#define PROGRAM_NAME "spmvCOOCuda"
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -43,39 +43,28 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
     Vector_set(Z, 0.0f);
-    Vector *U = Vector_new(matrix->col_size);
-    if (!U) {
-        fprintf(stderr, "Vector_(%lu)", matrix->col_size);
-        perror("");
-        exit(EXIT_FAILURE);
+
+    SpMVResultCPU cpu;
+    SpMVResultCUDA gpu;
+    COOMatrix_SpMV_CPU(matrix, X, Y, &cpu);
+    COOMatrix_SpMV_GPU(matrix, X, Z, &gpu);
+    int success = Vector_equals(Y, Z);
+    fprintf(stdout, "{\n");
+    fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
+    fprintf(stdout, "\"MatrixInfo\": ");
+    COOMatrix_infoOutAsJSON(matrix, stdout);
+    if (success) {
+        fprintf(stdout, ",\n");
+        fprintf(stdout, "\"CPUresult\": ");
+        SpMVResultCPU_outAsJSON(&cpu, stdout);
+        fprintf(stdout, ",\n");
+        fprintf(stdout, "\"GPUresult\": ");
+        SpMVResultCUDA_outAsJSON(&gpu, stdout);
     }
-    Vector_set(U, 0.0f);
-
-    COOMatrix first, second;
-    int ret = COOMatrix_split(matrix, &first, &second, 5);
-    if (ret == -1) {
-        fprintf(stderr, "fail\n");
-        return EXIT_FAILURE;
-    }
-    //COOMatrix_outAsJSON(matrix, stdout);
-    //COOMatrix_outAsJSON(&first, stdout);
-    //COOMatrix_outAsJSON(&second, stdout);
-    SpMVResultCPU cpu1, cpu2, cpu3;
-    COOMatrix_SpMV_CPU(matrix, X, Y, &cpu1);
-    //COOMatrix_SpMV_CPU(&first, X, Z, &cpu2);
-    //COOMatrix_SpMV_CPU(&second, X, Z, &cpu3);
-    SpMVResultCUDA r1, r2, r3, r4;
-    CSRMatrix *m1, *m2;
-    ELLMatrix *m3;
-    m2 = CSRMatrix_new(&second);
-    m3 = ELLMatrix_new_fromCOO(&first);
-    ELLMatrix_outAsJSON(m3, stdout);
-    ELLMatrix_transpose(m3);
-    ELLMatrix_outAsJSON(m3, stdout);
-    ELLMatrix_SpMV_GPU(m3, X, Z, &r1);
-    CSRMatrix_SpMV_GPU(m2, X, Z, &r2);
-
-    fprintf(stdout, "\"success\": \"%s\"\n", (Vector_equals(Y, Z)) ? "True" : "False");
-
+    fprintf(stdout, "\n}\n");
+    Vector_free(Z);
+    Vector_free(Y);
+    Vector_free(X);
+    COOMatrix_free(matrix);
     return 0;
 }

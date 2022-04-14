@@ -10,6 +10,8 @@
 #include "SpMVResult.h"
 
 void COOMatrix_SpMV_CPU(const COOMatrix *matrix,const Vector *x, Vector *y, SpMVResultCPU *result);
+void COOMatrix_SpMV_GPU(const COOMatrix *matrix,const Vector *x, Vector *y, SpMVResultCUDA *result);
+void COOMatrix_SpMV_OPENMP(const COOMatrix *matrix,const Vector *x, Vector *y, SpMVResultCPU *result);
 
 void CSRMatrix_SpMV_CPU(const CSRMatrix *matrix, const Vector *x, Vector *y, SpMVResultCPU *result);
 void CSRMatrix_SpMV_OPENMP(const CSRMatrix *matrix, const Vector *x, Vector *y, SpMVResultCPU *result);

@@ -10,6 +10,8 @@ typedef struct ELLMatrix {
     float *data;
     u_int64_t *col_index;
     size_t data_size;
+    u_int64_t data_row_size;
+    u_int64_t data_col_size;
     u_int64_t num_elem;
     u_int64_t row_size;
     u_int64_t col_size;

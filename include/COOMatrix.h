@@ -21,7 +21,7 @@ typedef struct COOMatrix {
 COOMatrix *COOMatrix_new();
 void COOMatrix_free(COOMatrix *matrix);
 void COOMatrix_outAsJSON(COOMatrix *matrix, FILE *out);
-void COOMatrix_infoAsJSON(COOMatrix *matrix, FILE *out);
+void COOMatrix_infoOutAsJSON(COOMatrix *matrix, FILE *out);
 u_int64_t COOMatrix_maxNumberOfElem(COOMatrix *matrix);
 int COOMatrix_split(const COOMatrix *matrix, COOMatrix *first, COOMatrix *second, u_int64_t threshold);
 

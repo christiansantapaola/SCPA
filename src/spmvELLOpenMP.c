@@ -12,7 +12,7 @@
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         fprintf(stderr, "USAGE: %s file.mtx\n", PROGRAM_NAME);
-        return 1;
+        return EXIT_FAILURE;
     }
     MTXParser *mtxParser = MTXParser_new(argv[1]);
     if (!mtxParser) {
@@ -25,37 +25,67 @@ int main(int argc, char *argv[]) {
         MTXParser_free(mtxParser);
         return EXIT_FAILURE;
     }
-    CSRMatrix *csrMatrix = CSRMatrix_new(cooMatrix);
-    ELLMatrix *ellMatrix = ELLMatrix_new(csrMatrix);
-    Vector* X = Vector_new(ellMatrix->col_size);
-    Vector* Y = Vector_new(ellMatrix->row_size);
-    Vector* Z = Vector_new(ellMatrix->row_size);
+    Vector* X = Vector_new(cooMatrix->col_size);
+    Vector* Y = Vector_new(cooMatrix->row_size);
+    Vector* Z = Vector_new(cooMatrix->row_size);
     Vector_set(X, 1.0f);
     Vector_set(Y, 0.0f);
     Vector_set(Z, 0.0f);
-    SpMVResultCPU cpuResult;
-    ELLMatrix_SpMV_CPU(ellMatrix, X, Y, &cpuResult);
-    SpMVResultCPU openmpResult;
-    ELLMatrix_SpMV_OPENMP(ellMatrix, X, Z, &openmpResult);
-    int success = Vector_equals(Y, Z);
-    fprintf(stdout, "{\n");
-    fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
-    fprintf(stdout, "\"MatrixInfo\": ");
-    ELLMatrix_infoOutAsJSON(ellMatrix, stdout);
-    if (success) {
+    COOMatrix *first, *second;
+    first = COOMatrix_new();
+    second = COOMatrix_new();
+    int noSplit = COOMatrix_split(cooMatrix, first, second, 64);
+    if (noSplit == -1) {
+        fprintf(stderr, "COOMatrix_split failed!");
+        exit(EXIT_FAILURE);
+    }
+    if (noSplit) {
+        ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(cooMatrix);
+        SpMVResultCPU cpuResult, openmpResult;
+        ELLMatrix_SpMV_CPU(ellMatrix, X, Y, &cpuResult);
+        ELLMatrix_SpMV_OPENMP(ellMatrix, X, Z, &openmpResult);
+        int success = Vector_equals(Y, Z);
+        fprintf(stdout, "{\n");
+        fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
+        fprintf(stdout, "\"MatrixInfo\": ");
+        ELLMatrix_infoOutAsJSON(ellMatrix, stdout);
         fprintf(stdout, ",\n");
-        fprintf(stdout, "\"CPUResult\": ");
+        fprintf(stdout, "\"CPUresult\": ");
         SpMVResultCPU_outAsJSON(&cpuResult, stdout);
         fprintf(stdout, ",\n");
         fprintf(stdout, "\"OpenMPResult\": ");
-        SpMVResultCPU_outAsJSON(&openmpResult, stdout);
+        SpMVResultCUDA_outAsJSON(&openmpResult, stdout);
+        fprintf(stdout, "\n}\n");
+        ELLMatrix_free(ellMatrix);
+    } else {
+        ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(first);
+        SpMVResultCPU cpuResult, openmpELL, openmpCOO;
+        COOMatrix_SpMV_CPU(cooMatrix, X, Y, &cpuResult);
+        ELLMatrix_SpMV_OPENMP(ellMatrix, X, Z, &openmpELL);
+        COOMatrix_SpMV_OPENMP(second, X, Z, &openmpCOO);
+        int success = Vector_equals(Y, Z);
+        fprintf(stdout, "{\n");
+        fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
+        fprintf(stdout, "\"MatrixInfo\": ");
+        ELLMatrix_infoOutAsJSON(ellMatrix, stdout);
+        fprintf(stdout, ",\n");
+        fprintf(stdout, "\"CPUresult\": ");
+        SpMVResultCPU_outAsJSON(&cpuResult, stdout);
+        fprintf(stdout, ",\n");
+        fprintf(stdout, "\"GPUresult\": ");
+        SpMVResultCUDA_outAsJSON(&gpuResult, stdout);
+        fprintf(stdout, ",\n");
+        fprintf(stdout, "\"GPUCOOResult\": ");
+        SpMVResultCUDA_outAsJSON(&gpuCOOResult, stdout);
+        fprintf(stdout, "\n}\n");
+        ELLMatrix_free(ellMatrix);
     }
-    fprintf(stdout, "\n}\n");
+    COOMatrix_free(first);
+    COOMatrix_free(second);
     Vector_free(Z);
     Vector_free(Y);
     Vector_free(X);
-    ELLMatrix_free(ellMatrix);
-    CSRMatrix_free(csrMatrix);
     COOMatrix_free(cooMatrix);
+    MTXParser_free(mtxParser);
     return EXIT_SUCCESS;
 }

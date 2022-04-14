@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "MTXParser.h"
 #include "COOMatrix.h"
-#include "CSRMatrix.h"
 #include "ELLMatrix.h"
 #include "Vector.h"
 #include "SpMVResult.h"
@@ -61,14 +60,13 @@ int main(int argc, char *argv[]) {
         ELLMatrix_free(ellMatrix);
     } else {
         ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(first);
-        CSRMatrix *csrMatrix = CSRMatrix_new(second);
         SpMVResultCPU cpuResult;
-        ELLMatrix_SpMV_CPU(ellMatrix, X, Y, &cpuResult);
+        COOMatrix_SpMV_CPU(cooMatrix, X, Y, &cpuResult);
         SpMVResultCUDA gpuResult;
-        SpMVResultCUDA gpuResultcsr;
+        SpMVResultCUDA gpuCOOResult;
         ELLMatrix_transpose(ellMatrix);
         ELLMatrix_SpMV_GPU(ellMatrix, X, Z, &gpuResult);
-        CSRMatrix_SpMV_GPU(csrMatrix, X, Z, &gpuResultcsr);
+        COOMatrix_SpMV_GPU(second, X, Z, &gpuCOOResult);
         int success = Vector_equals(Y, Z);
         fprintf(stdout, "{\n");
         fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
@@ -81,11 +79,10 @@ int main(int argc, char *argv[]) {
         fprintf(stdout, "\"GPUresult\": ");
         SpMVResultCUDA_outAsJSON(&gpuResult, stdout);
         fprintf(stdout, ",\n");
-        fprintf(stdout, "\"GPUResultCSR\": ");
-        SpMVResultCUDA_outAsJSON(&gpuResultcsr, stdout);
+        fprintf(stdout, "\"GPUCOOResult\": ");
+        SpMVResultCUDA_outAsJSON(&gpuCOOResult, stdout);
         fprintf(stdout, "\n}\n");
         ELLMatrix_free(ellMatrix);
-        CSRMatrix_free(csrMatrix);
     }
     COOMatrix_free(first);
     COOMatrix_free(second);

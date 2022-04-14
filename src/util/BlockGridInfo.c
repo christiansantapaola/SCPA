@@ -7,8 +7,8 @@ void BlockGridInfo_outAsJSON(BlockGridInfo *blockGridInfo, FILE *out) {
     fprintf(out, "%s: %zu,\n", "\"gridSize\"",  blockGridInfo->gridSize);
     fprintf(out, "%s: %f,\n", "\"utilizationSM\"",  blockGridInfo->utilizationSM);
     fprintf(out, "%s: %f,\n", "\"spread\"",  blockGridInfo->spread);
-    fprintf(out, "%s: %u,\n", "\"numThread\"",  blockGridInfo->numThread);
-    fprintf(out, "%s: %u,\n", "\"wastedThread\"",  blockGridInfo->wastedThread);
+    fprintf(out, "%s: %lu,\n", "\"numThread\"",  blockGridInfo->numThread);
+    fprintf(out, "%s: %lu,\n", "\"wastedThread\"",  blockGridInfo->wastedThread);
     fprintf(out, "%s: %f,\n", "\"wastedThreadOverNumThread\"",  blockGridInfo->wastedThreadOverNumThread);
     fprintf(out, "%s: %f,\n", "\"utilization\"",  blockGridInfo->utilization);
     fprintf(out, "%s: %zu,\n", "\"numBlockToFillSM\"",  blockGridInfo->numBlockToFillSM);

@@ -135,3 +135,17 @@ int COOMatrix_split(const COOMatrix *matrix, COOMatrix *first, COOMatrix *second
     Histogram_free(rowsElem);
     return 0;
 }
+
+void COOMatrix_infoOutAsJSON(COOMatrix *matrix, FILE *out) {
+    if (!out) out=stdout;
+    if (!matrix) {
+        fprintf(out, "{}");
+        return;
+    }
+    fprintf(out, "%s\n", "{ ");
+    fprintf(out, "%s: %lu,\n", "\"row size\"",  matrix->row_size);
+    fprintf(out, "%s: %lu,\n", "\"col size\"",  matrix->col_size);
+    fprintf(out, "%s: %lu,\n", "\"num_non_zero_elements\"",  matrix->num_non_zero_elements);
+    fprintf(out, "%s: %lf\n", "\"density\"",  ( ((double) matrix->num_non_zero_elements) / ((double) (matrix->row_size * matrix->col_size))));
+    fprintf(out, "%s", "}");
+}

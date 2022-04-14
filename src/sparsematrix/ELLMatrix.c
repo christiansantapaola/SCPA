@@ -41,6 +41,8 @@ ELLMatrix *ELLMatrix_new(CSRMatrix *csrMatrix) {
     }
 
     ellMatrix->num_elem = max_num_nz_elem;
+    ellMatrix->data_row_size = ellMatrix->row_size;
+    ellMatrix->data_col_size = ellMatrix->num_elem;
     ellMatrix->data_size = ellMatrix->row_size * ellMatrix->num_elem;
 
     ellMatrix->data = (float *) malloc(ellMatrix->data_size * sizeof(float));
@@ -70,6 +72,8 @@ ELLMatrix *ELLMatrix_new_fromCOO(COOMatrix *cooMatrix) {
 
     // find the the maximum number of non zero elements in a row.
     ellMatrix->num_elem = COOMatrix_maxNumberOfElem(cooMatrix);
+    ellMatrix->data_row_size = ellMatrix->row_size;
+    ellMatrix->data_col_size = ellMatrix->num_elem;
     ellMatrix->data_size = ellMatrix->row_size * ellMatrix->num_elem;
 
     ellMatrix->data = (float *) malloc(ellMatrix->data_size * sizeof(float));
@@ -103,10 +107,14 @@ void ELLMatrix_free(ELLMatrix *ellMatrix) {
 void ELLMatrix_transpose(ELLMatrix *ellMatrix) {
     float *temp_data = (float *) malloc(ellMatrix->data_size * sizeof(float));
     u_int64_t *temp_col_index = (u_int64_t *) malloc(ellMatrix->data_size * sizeof(u_int64_t));
+    u_int64_t temp;
     memcpy(temp_data, ellMatrix->data, ellMatrix->data_size * sizeof(float));
     memcpy(temp_col_index, ellMatrix->col_index, ellMatrix->data_size * sizeof(u_int64_t));
-    transposef(ellMatrix->data, temp_data, ellMatrix->row_size, ellMatrix->num_elem);
-    transpose_u_int64_t(ellMatrix->col_index, temp_col_index, ellMatrix->row_size, ellMatrix->num_elem);
+    transposef(ellMatrix->data, temp_data, ellMatrix->data_row_size, ellMatrix->data_col_size);
+    transpose_u_int64_t(ellMatrix->col_index, temp_col_index, ellMatrix->data_row_size, ellMatrix->data_col_size);
+    temp = ellMatrix->data_row_size;
+    ellMatrix->data_row_size = ellMatrix->data_col_size;
+    ellMatrix->data_col_size = temp;
     free(temp_data);
     free(temp_col_index);
 }
