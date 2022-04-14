@@ -34,7 +34,7 @@ int Vector_equals(const Vector *v1, const Vector *v2) {
 
 
 void Vector_set(Vector *vector, float value) {
-    for (unsigned int i = 0; i < vector->size; i++) {
+    for (u_int64_t i = 0; i < vector->size; i++) {
         vector->data[i] = value;
     }
 }
