@@ -192,9 +192,6 @@ int main(int argc, char *argv[]) {
             fprintf(out, "\"GPUresult\": ");
             SpMVResultCUDA_outAsJSON(&gpuResult, out);
             fprintf(out, ",\n");
-            fprintf(out, "\"GPUCOOresult\": ");
-            SpMVResultCUDA_outAsJSON(&gpuCOOResult, out);
-            fprintf(out, ",\n");
             fprintf(out, "\"OpenMPELLresult\": ");
             SpMVResultCPU_outAsJSON(&openmpELLResult, out);
             fprintf(out, ",\n");
