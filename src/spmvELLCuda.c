@@ -35,10 +35,9 @@ void spmvWithPinnedMemory(char *mtx) {
         exit(EXIT_FAILURE);
     }
     if (noSplit) {
-        fprintf(stderr, "no split\n");
         ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO_wpm(cooMatrix);
         SpMVResultCPU cpuResult;
-        ELLMatrix_SpMV_CPU(ellMatrix, X, Y, &cpuResult);
+        COOMatrix_SpMV_CPU(cooMatrix, X, Y, &cpuResult);
         SpMVResultCUDA gpuResult;
         ELLMatrix_transpose(ellMatrix);
         ELLMatrix_SpMV_GPU_wpm(ellMatrix, X, Z, &gpuResult);

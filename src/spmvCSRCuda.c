@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     Vector_set(Y, 0.0f);
     Vector_set(Z, 0.0f);
     SpMVResultCPU cpuResult;
-    CSRMatrix_SpMV_CPU(csrMatrix, X, Y, &cpuResult);
+    COOMatrix_SpMV_CPU(cooMatrix, X, Y, &cpuResult);
     SpMVResultCUDA gpuResult;
     CSRMatrix_SpMV_GPU_wpm(csrMatrix, X, Z, &gpuResult);
     int success = Vector_equals(Y, Z);
