@@ -24,4 +24,6 @@ void ELLMatrix_SpMV_OPENMP(const ELLMatrix *matrix, const Vector *x, Vector *y, 
 void ELLMatrix_SpMV_GPU(const ELLMatrix *matrix, const Vector *x, Vector *y, SpMVResultCUDA *result);
 void ELLMatrix_SpMV_GPU_wpm(const ELLMatrix *matrix, const Vector *x, Vector *y, SpMVResultCUDA *result);
 
+void ELLMatrixHyb_SpMV_GPU(const ELLMatrix *ellMatrix, const COOMatrix *cooMatrix, const Vector *x, Vector *y, SpMVResultCUDA *result);
+void ELLMatrixHyb_SpMV_GPU_wpm(const ELLMatrix *ellMatrix, const COOMatrix *cooMatrix, const Vector *x, Vector *y, SpMVResultCUDA *result);
 #endif //SPARSEMATRIX_SPMV_H

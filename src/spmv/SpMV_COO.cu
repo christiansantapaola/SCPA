@@ -6,7 +6,7 @@ extern "C" {
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include "cudaUtils.cuh"
-
+#include "SpMVKernel.cuh"
 
 
 __global__ void
@@ -62,7 +62,7 @@ void COOMatrix_SpMV_GPU(const COOMatrix *matrix, const Vector *x, Vector *y, SpM
     checkCudaErrors(cudaMalloc(&d_matrix_data, matrix->num_non_zero_elements * sizeof(float)));
     checkCudaErrors(cudaMalloc(&d_col_index, matrix->num_non_zero_elements * sizeof(u_int64_t)));
     checkCudaErrors(cudaMalloc(&d_row_index, matrix->num_non_zero_elements * sizeof(u_int64_t)));
-    checkCudaErrors(cudaMalloc(&d_x, matrix->row_size * sizeof(float)));
+    checkCudaErrors(cudaMalloc(&d_x, matrix->col_size * sizeof(float)));
     checkCudaErrors(cudaMalloc(&d_y, matrix->row_size * sizeof(float)));
 
 //    checkCudaErrors(cudaMemcpyAsync(d_matrix_data, matrix->data,matrix->num_non_zero_elements * sizeof(float),cudaMemcpyHostToDevice));
@@ -75,7 +75,7 @@ void COOMatrix_SpMV_GPU(const COOMatrix *matrix, const Vector *x, Vector *y, SpM
     checkCudaErrors(cudaMemcpy(d_matrix_data, matrix->data,matrix->num_non_zero_elements * sizeof(float),cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(d_col_index, matrix->col_index, matrix->num_non_zero_elements * sizeof(u_int64_t), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(d_row_index, matrix->row_index, matrix->num_non_zero_elements * sizeof(u_int64_t), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(d_x, x->data, matrix->row_size * sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(d_x, x->data, matrix->col_size * sizeof(float), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(d_y, y->data, matrix->row_size * sizeof(float), cudaMemcpyHostToDevice));
 
     cudaEventRecord(instop);
@@ -107,9 +107,7 @@ void COOMatrix_SpMV_GPU(const COOMatrix *matrix, const Vector *x, Vector *y, SpM
         cudaEventElapsedTime(&result->GPUInputOnDeviceTime, instart, instop);
         cudaEventSynchronize(outstop);
         cudaEventElapsedTime(&result->GPUOutputFromDeviceTime, outstart, outstop);
-        result->blockGridInfo = blockGridInfo;
-        result->GPUusedGlobalMemory = memoryUsed;
-        result->GPUtotalGlobMemory = prop.totalGlobalMem;
+        result->GPUTotalTime = result->GPUInputOnDeviceTime + result->GPUKernelExecutionTime + result->GPUOutputFromDeviceTime;
         return;
     }
 
@@ -159,14 +157,14 @@ extern "C" void COOMatrix_SpMV_GPU_wpm(const COOMatrix *matrix, const Vector *x,
     checkCudaErrors(cudaMalloc(&d_matrix_data, matrix->num_non_zero_elements * sizeof(float)));
     checkCudaErrors(cudaMalloc(&d_col_index, matrix->num_non_zero_elements * sizeof(u_int64_t)));
     checkCudaErrors(cudaMalloc(&d_row_index, matrix->num_non_zero_elements * sizeof(u_int64_t)));
-    checkCudaErrors(cudaMalloc(&d_x, matrix->row_size * sizeof(float)));
-    checkCudaErrors(cudaMalloc(&d_y, matrix->row_size * sizeof(float)));
+    checkCudaErrors(cudaMalloc(&d_x, x->size * sizeof(float)));
+    checkCudaErrors(cudaMalloc(&d_y, y->size * sizeof(float)));
 
     checkCudaErrors(cudaMemcpyAsync(d_matrix_data, matrix->data,matrix->num_non_zero_elements * sizeof(float),cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpyAsync(d_col_index, matrix->col_index, matrix->num_non_zero_elements * sizeof(u_int64_t), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpyAsync(d_row_index, matrix->row_index, (matrix->row_size + 1) * sizeof(u_int64_t), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpyAsync(d_x, x->data, matrix->row_size * sizeof(float), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpyAsync(d_y, y->data, matrix->row_size * sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpyAsync(d_x, x->data, x->size * sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpyAsync(d_y, y->data, y->size * sizeof(float), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaDeviceSynchronize());
 
     cudaEventRecord(instop);
@@ -198,9 +196,7 @@ extern "C" void COOMatrix_SpMV_GPU_wpm(const COOMatrix *matrix, const Vector *x,
         cudaEventElapsedTime(&result->GPUInputOnDeviceTime, instart, instop);
         cudaEventSynchronize(outstop);
         cudaEventElapsedTime(&result->GPUOutputFromDeviceTime, outstart, outstop);
-        result->blockGridInfo = blockGridInfo;
-        result->GPUusedGlobalMemory = memoryUsed;
-        result->GPUtotalGlobMemory = prop.totalGlobalMem;
+        result->GPUTotalTime = result->GPUInputOnDeviceTime + result->GPUKernelExecutionTime + result->GPUOutputFromDeviceTime;
         return;
     }
 

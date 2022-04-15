@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
     SpMVResultCPU cpuResult;
     CSRMatrix_SpMV_CPU(csrMatrix, X, Y, &cpuResult);
     SpMVResultCUDA gpuResult;
-    CSRMatrix_SpMV_GPU(csrMatrix, X, Z, &gpuResult);
+    CSRMatrix_SpMV_GPU_wpm(csrMatrix, X, Z, &gpuResult);
     int success = Vector_equals(Y, Z);
     fprintf(stdout, "{\n");
     fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");

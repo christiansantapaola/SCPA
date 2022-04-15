@@ -7,8 +7,9 @@ extern "C" {
 #include "SpMVResult.h"
 #include "SpMV.h"
 }
+#include "SpMVKernel.cuh"
 
-__global__ void SpMV_ELL(u_int64_t num_rows, const float *data, const u_int64_t *col_index, u_int64_t num_elem, const float *x, float *y) {
+__global__ void SpMV_ELL_kernel(u_int64_t num_rows, const float *data, const u_int64_t *col_index, u_int64_t num_elem, const float *x, float *y) {
     int row = blockDim.x * blockIdx.x + threadIdx.x;
     if (row < num_rows) {
         float dot = 0.0f;
@@ -73,7 +74,7 @@ void ELLMatrix_SpMV_GPU(const ELLMatrix *matrix,const Vector *x, Vector *y, SpMV
 
     cudaEventRecord(instop);
     cudaEventRecord(start);
-    SpMV_ELL<<<blockGridInfo.gridSize, blockGridInfo.blockSize>>>(matrix->row_size, d_data, d_col_index, matrix->num_elem, d_x, d_y);
+    SpMV_ELL_kernel<<<blockGridInfo.gridSize, blockGridInfo.blockSize>>>(matrix->row_size, d_data, d_col_index, matrix->num_elem, d_x, d_y);
     checkCudaErrors(cudaDeviceSynchronize());
     cudaEventRecord(stop);
     checkCudaErrors(cudaPeekAtLastError());
@@ -92,9 +93,7 @@ void ELLMatrix_SpMV_GPU(const ELLMatrix *matrix,const Vector *x, Vector *y, SpMV
         cudaEventElapsedTime(&result->GPUInputOnDeviceTime, instart, instop);
         cudaEventSynchronize(outstop);
         cudaEventElapsedTime(&result->GPUOutputFromDeviceTime, outstart, outstop);
-        result->blockGridInfo = blockGridInfo;
-        result->GPUusedGlobalMemory = memoryUsed;
-        result->GPUtotalGlobMemory = prop.totalGlobalMem;
+        result->GPUTotalTime = result->GPUInputOnDeviceTime + result->GPUKernelExecutionTime + result->GPUOutputFromDeviceTime;
         return;
     }
 }
@@ -152,7 +151,7 @@ void ELLMatrix_SpMV_GPU_wpm(const ELLMatrix *matrix,const Vector *x, Vector *y, 
 
     cudaEventRecord(instop);
     cudaEventRecord(start);
-    SpMV_ELL<<<blockGridInfo.gridSize, blockGridInfo.blockSize>>>(matrix->row_size, d_data, d_col_index, matrix->num_elem, d_x, d_y);
+    SpMV_ELL_kernel<<<blockGridInfo.gridSize, blockGridInfo.blockSize>>>(matrix->row_size, d_data, d_col_index, matrix->num_elem, d_x, d_y);
     checkCudaErrors(cudaDeviceSynchronize());
     cudaEventRecord(stop);
     checkCudaErrors(cudaPeekAtLastError());
@@ -171,9 +170,7 @@ void ELLMatrix_SpMV_GPU_wpm(const ELLMatrix *matrix,const Vector *x, Vector *y, 
         cudaEventElapsedTime(&result->GPUInputOnDeviceTime, instart, instop);
         cudaEventSynchronize(outstop);
         cudaEventElapsedTime(&result->GPUOutputFromDeviceTime, outstart, outstop);
-        result->blockGridInfo = blockGridInfo;
-        result->GPUusedGlobalMemory = memoryUsed;
-        result->GPUtotalGlobMemory = prop.totalGlobalMem;
+        result->GPUTotalTime = result->GPUInputOnDeviceTime + result->GPUKernelExecutionTime + result->GPUOutputFromDeviceTime;
         return;
     }
 }

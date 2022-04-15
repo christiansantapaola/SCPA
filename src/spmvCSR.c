@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
         SpMVResultCPU cpuResult;
         SpMVResultCUDA gpuResult;
         SpMVResultCPU openmpResult;
-        CSRMatrix_SpMV_GPU(csrMatrix, X, Y, &gpuResult);
+        CSRMatrix_SpMV_GPU_wpm(csrMatrix, X, Y, &gpuResult);
         CSRMatrix_SpMV_CPU(csrMatrix, X, Z, &cpuResult);
         CSRMatrix_SpMV_OPENMP(csrMatrix, X, U, &openmpResult);
         int successGPU = Vector_equals(Z, Y);

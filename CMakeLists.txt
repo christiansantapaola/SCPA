@@ -117,6 +117,7 @@ add_executable(spmvELLCuda
         src/spmv/SpMVResult.c
         src/spmv/SpMV.c
         src/spmv/SpMV_ELL_openmp.c
+        src/spmv/SpMV_ELLHYB.cu
         src/util/BlockGridInfo.c)
 
 target_link_libraries(spmvELLCuda ${CUDA_LIBRARIES} OpenMP::OpenMP_C)
@@ -197,6 +198,7 @@ add_executable(spmvELL
         src/spmv/SpMV_ELL.cu
         src/spmv/SpMV_ELL_openmp.c
         src/spmv/SpMV_COO_openmp.c
+        src/spmv/SpMV_ELLHYB.cu
         src/spmv/SpMVResult.c
         lib/mmio/src/mmio.c
         )

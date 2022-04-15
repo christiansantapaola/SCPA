@@ -7,7 +7,6 @@
 #include "SpMV.h"
 
 #define PROGRAM_NAME "spmvELLCuda"
-#define WPM
 
 void spmvWithPinnedMemory(char *mtx) {
     MTXParser *mtxParser = MTXParser_new(mtx);
@@ -22,29 +21,31 @@ void spmvWithPinnedMemory(char *mtx) {
         exit(EXIT_FAILURE);
     }
     Vector* X = Vector_new_wpm(cooMatrix->col_size);
-    Vector* Y = Vector_new(cooMatrix->row_size);
-    Vector* Z = Vector_new_wpm(cooMatrix->row_size);
+    Vector* Y = Vector_new_wpm(cooMatrix->row_size);
+    Vector* Z = Vector_new(cooMatrix->row_size);
     Vector_set(X, 1.0f);
     Vector_set(Y, 0.0f);
     Vector_set(Z, 0.0f);
     COOMatrix *first, *second;
     first = COOMatrix_new();
     second = COOMatrix_new();
-    int noSplit = COOMatrix_split_wpm(cooMatrix, first, second, 64);
+    int noSplit = COOMatrix_split_wpm(cooMatrix, first, second, 2);
     if (noSplit == -1) {
         fprintf(stderr, "COOMatrix_split failed!");
         exit(EXIT_FAILURE);
     }
     if (noSplit) {
+        fprintf(stderr, "no split\n");
         ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO_wpm(cooMatrix);
         SpMVResultCPU cpuResult;
         ELLMatrix_SpMV_CPU(ellMatrix, X, Y, &cpuResult);
         SpMVResultCUDA gpuResult;
         ELLMatrix_transpose(ellMatrix);
-        ELLMatrix_SpMV_GPU(ellMatrix, X, Z, &gpuResult);
+        ELLMatrix_SpMV_GPU_wpm(ellMatrix, X, Z, &gpuResult);
         int success = Vector_equals(Y, Z);
         fprintf(stdout, "{\n");
         fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
+        fprintf(stdout, "\"split\": %s,\n", "false");
         fprintf(stdout, "\"MatrixInfo\": ");
         ELLMatrix_infoOutAsJSON(ellMatrix, stdout);
         fprintf(stdout, ",\n");
@@ -56,17 +57,19 @@ void spmvWithPinnedMemory(char *mtx) {
         fprintf(stdout, "\n}\n");
         ELLMatrix_free_wpm(ellMatrix);
     } else {
+        fprintf(stderr, "split\n");
         ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO_wpm(first);
         SpMVResultCPU cpuResult;
+//        ELLMatrix_SpMV_CPU(ellMatrix, X, Y, &cpuResult);
+//        COOMatrix_SpMV_CPU(second, X, Y, &cpuResult);
         COOMatrix_SpMV_CPU(cooMatrix, X, Y, &cpuResult);
         SpMVResultCUDA gpuResult;
-        SpMVResultCUDA gpuCOOResult;
         ELLMatrix_transpose(ellMatrix);
-        ELLMatrix_SpMV_GPU(ellMatrix, X, Z, &gpuResult);
-        COOMatrix_SpMV_GPU(second, X, Z, &gpuCOOResult);
+        ELLMatrixHyb_SpMV_GPU_wpm(ellMatrix, second, X, Z, &gpuResult);
         int success = Vector_equals(Y, Z);
         fprintf(stdout, "{\n");
         fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
+        fprintf(stdout, "\"split\": %s,\n", "true");
         fprintf(stdout, "\"MatrixInfo\": ");
         ELLMatrix_infoOutAsJSON(ellMatrix, stdout);
         fprintf(stdout, ",\n");
@@ -75,16 +78,13 @@ void spmvWithPinnedMemory(char *mtx) {
         fprintf(stdout, ",\n");
         fprintf(stdout, "\"GPUresult\": ");
         SpMVResultCUDA_outAsJSON(&gpuResult, stdout);
-        fprintf(stdout, ",\n");
-        fprintf(stdout, "\"GPUCOOResult\": ");
-        SpMVResultCUDA_outAsJSON(&gpuCOOResult, stdout);
         fprintf(stdout, "\n}\n");
         ELLMatrix_free_wpm(ellMatrix);
     }
     COOMatrix_free(first);
     COOMatrix_free_wpm(second);
-    Vector_free_wpm(Z);
-    Vector_free(Y);
+    Vector_free(Z);
+    Vector_free_wpm(Y);
     Vector_free_wpm(X);
     COOMatrix_free(cooMatrix);
     MTXParser_free(mtxParser);
@@ -111,7 +111,7 @@ void spmvWithoutPinnedMemory(char *mtx) {
     COOMatrix *first, *second;
     first = COOMatrix_new();
     second = COOMatrix_new();
-    int noSplit = COOMatrix_split(cooMatrix, first, second, 64);
+    int noSplit = COOMatrix_split(cooMatrix, first, second, 2);
     if (noSplit == -1) {
         fprintf(stderr, "COOMatrix_split failed!");
         exit(EXIT_FAILURE);
@@ -126,6 +126,7 @@ void spmvWithoutPinnedMemory(char *mtx) {
         int success = Vector_equals(Y, Z);
         fprintf(stdout, "{\n");
         fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
+        fprintf(stdout, "\"split\": %s,\n", "false");
         fprintf(stdout, "\"MatrixInfo\": ");
         ELLMatrix_infoOutAsJSON(ellMatrix, stdout);
         fprintf(stdout, ",\n");
@@ -139,15 +140,15 @@ void spmvWithoutPinnedMemory(char *mtx) {
     } else {
         ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(first);
         SpMVResultCPU cpuResult;
-        COOMatrix_SpMV_CPU(cooMatrix, X, Y, &cpuResult);
+        ELLMatrix_SpMV_CPU(ellMatrix, X, Y, &cpuResult);
+        COOMatrix_SpMV_CPU(second, X, Y, &cpuResult);
         SpMVResultCUDA gpuResult;
-        SpMVResultCUDA gpuCOOResult;
         ELLMatrix_transpose(ellMatrix);
-        ELLMatrix_SpMV_GPU(ellMatrix, X, Z, &gpuResult);
-        COOMatrix_SpMV_GPU(second, X, Z, &gpuCOOResult);
+        ELLMatrixHyb_SpMV_GPU(ellMatrix, second, X, Z, &gpuResult);
         int success = Vector_equals(Y, Z);
         fprintf(stdout, "{\n");
         fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
+        fprintf(stdout, "\"split\": %s,\n", "true");
         fprintf(stdout, "\"MatrixInfo\": ");
         ELLMatrix_infoOutAsJSON(ellMatrix, stdout);
         fprintf(stdout, ",\n");
@@ -156,9 +157,6 @@ void spmvWithoutPinnedMemory(char *mtx) {
         fprintf(stdout, ",\n");
         fprintf(stdout, "\"GPUresult\": ");
         SpMVResultCUDA_outAsJSON(&gpuResult, stdout);
-        fprintf(stdout, ",\n");
-        fprintf(stdout, "\"GPUCOOResult\": ");
-        SpMVResultCUDA_outAsJSON(&gpuCOOResult, stdout);
         fprintf(stdout, "\n}\n");
         ELLMatrix_free(ellMatrix);
     }
@@ -176,10 +174,6 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "USAGE: %s file.mtx\n", PROGRAM_NAME);
         return EXIT_FAILURE;
     }
-#ifdef WPM
     spmvWithPinnedMemory(argv[1]);
-#else
-    spmvWithoutPinnedMemory(argv[1]);
-#endif
     return EXIT_SUCCESS;
 }

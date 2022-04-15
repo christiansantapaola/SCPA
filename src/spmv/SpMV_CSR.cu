@@ -6,6 +6,7 @@ extern "C" {
 }
 #include "cudaUtils.cuh"
 #include <cuda.h>
+#include "SpMVKernel.cuh"
 
 #define MAX_X_SIZE 65536 / sizeof(float)
 
@@ -122,9 +123,7 @@ void CSRMatrix_SpMV_GPU(const CSRMatrix *matrix, const Vector *x, Vector *y, SpM
         cudaEventElapsedTime(&result->GPUInputOnDeviceTime, instart, instop);
         cudaEventSynchronize(outstop);
         cudaEventElapsedTime(&result->GPUOutputFromDeviceTime, outstart, outstop);
-        result->blockGridInfo = blockGridInfo;
-        result->GPUusedGlobalMemory = memoryUsed;
-        result->GPUtotalGlobMemory = prop.totalGlobalMem;
+        result->GPUTotalTime = result->GPUInputOnDeviceTime + result->GPUKernelExecutionTime + result->GPUOutputFromDeviceTime;
         return;
     }
 
@@ -213,9 +212,8 @@ void CSRMatrix_SpMV_GPU_wpm(const CSRMatrix *matrix, const Vector *x, Vector *y,
         cudaEventElapsedTime(&result->GPUInputOnDeviceTime, instart, instop);
         cudaEventSynchronize(outstop);
         cudaEventElapsedTime(&result->GPUOutputFromDeviceTime, outstart, outstop);
-        result->blockGridInfo = blockGridInfo;
-        result->GPUusedGlobalMemory = memoryUsed;
-        result->GPUtotalGlobMemory = prop.totalGlobalMem;
+        result->GPUTotalTime = result->GPUInputOnDeviceTime + result->GPUKernelExecutionTime + result->GPUOutputFromDeviceTime;
+
         return;
     }
 
