@@ -104,13 +104,6 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
         Vector_set(Z, 0.0f);
-        Vector *U = Vector_new(cooMatrix->col_size);
-        if (!U) {
-            fprintf(stderr, "Vector_(%lu)", cooMatrix->col_size);
-            perror("");
-            exit(EXIT_FAILURE);
-        }
-        Vector_set(U, 0.0f);
         CSRMatrix *csrMatrix = CSRMatrix_new_wpm(cooMatrix);
         if (!csrMatrix) {
             perror("CSRMatrix_new_wpm()");
@@ -122,13 +115,10 @@ int main(int argc, char *argv[]) {
         SpMVResultCPU openmpResult;
         CSRMatrix_SpMV_GPU_wpm(csrMatrix, X, Y, &gpuResult);
         COOMatrix_SpMV_CPU(cooMatrix, X, Z, &cpuResult);
-        CSRMatrix_SpMV_OPENMP(csrMatrix, X, U, &openmpResult);
         int successGPU = Vector_equals(Z, Y);
-        int successOpenMP = Vector_equals(Z, U);
         fprintf(out, "{\n");
         fprintf(out, "\"matrix\": \"%s\",\n", absolutePath);
         fprintf(out, "\"successGPU\": %s,\n", (successGPU) ? "true" : "false");
-        fprintf(out, "\"successOpenMP\": %s,\n", (successOpenMP) ? "true" : "false");
         fprintf(out, "\"MatrixInfo\": ");
         CSRMatrix_infoOutAsJSON(csrMatrix, out);
         fprintf(out, ",\n");

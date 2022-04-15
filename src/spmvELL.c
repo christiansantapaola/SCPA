@@ -108,13 +108,6 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
         Vector_set(Z, 0.0f);
-        Vector *U = Vector_new(cooMatrix->col_size);
-        if (!U) {
-            fprintf(stderr, "Vector_(%lu)", cooMatrix->col_size);
-            perror("");
-            exit(EXIT_FAILURE);
-        }
-        Vector_set(U, 0.0f);
         COOMatrix *lower, *higher;
         lower = COOMatrix_new();
         if (!lower) {
@@ -134,22 +127,19 @@ int main(int argc, char *argv[]) {
         if (ret) {
             SpMVResultCPU cpuResult;
             SpMVResultCUDA gpuResult;
-            SpMVResultCPU openmpResult;
             ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO_wpm(cooMatrix);
             if (!ellMatrix) {
                 perror("ELLMatrix_new()");
                 exit(EXIT_FAILURE);
             }
             COOMatrix_SpMV_CPU(cooMatrix, X, Z, &cpuResult);
-            ELLMatrix_SpMV_OPENMP(ellMatrix, X, U, &openmpResult);
             ELLMatrix_transpose(ellMatrix);
             ELLMatrix_SpMV_GPU_wpm(ellMatrix, X, Y, &gpuResult);
             int successGPU = Vector_equals(Y, Z);
-            int successOpenMP = Vector_equals(U, Z);
             fprintf(out, "{\n");
             fprintf(out, "\"matrix\": \"%s\",\n", entry->d_name);
             fprintf(out, "\"successGPU\": %s,\n", (successGPU) ? "true" : "false");
-            fprintf(out, "\"successOpenMP\": %s,\n", (successOpenMP) ? "true" : "false");
+            fprintf(out, "\"split\": %s,\n", "false");
             fprintf(out, "\"MatrixInfo\": ");
             COOMatrix_infoOutAsJSON(cooMatrix, out);
             fprintf(out, ",\n");
@@ -158,31 +148,24 @@ int main(int argc, char *argv[]) {
             fprintf(out, ",\n");
             fprintf(out, "\"GPUresult\": ");
             SpMVResultCUDA_outAsJSON(&gpuResult, out);
-            fprintf(out, ",\n");
-            fprintf(out, "\"OpenMPresult\": ");
-            SpMVResultCPU_outAsJSON(&openmpResult, out);
             fprintf(out, "\n},\n");
             ELLMatrix_free_wpm(ellMatrix);
         } else {
             SpMVResultCPU cpuResult;
             SpMVResultCUDA gpuResult;
-            SpMVResultCPU openmpELLResult, openmpCOOResult;
             ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO_wpm(lower);
             if (!ellMatrix) {
                 perror("ELLMatrix_new()");
                 exit(EXIT_FAILURE);
             }
             COOMatrix_SpMV_CPU(cooMatrix, X, Z, &cpuResult);
-            ELLMatrix_SpMV_OPENMP(ellMatrix, X, U, &openmpELLResult);
-            COOMatrix_SpMV_OPENMP(higher, X, U, &openmpCOOResult);
             ELLMatrix_transpose(ellMatrix);
             ELLMatrixHyb_SpMV_GPU_wpm(ellMatrix, higher, X, Y, &gpuResult);
             int successGPU = Vector_equals(Y, Z);
-            int successOpenMP = Vector_equals(U, Z);
             fprintf(out, "{\n");
             fprintf(out, "\"matrix\": \"%s\",\n", entry->d_name);
             fprintf(out, "\"successGPU\": %s,\n", (successGPU) ? "true" : "false");
-            fprintf(out, "\"successOpenMP\": %s,\n", (successOpenMP) ? "true" : "false");
+            fprintf(out, "\"split\": %s,\n", "true");
             fprintf(out, "\"MatrixInfo\": ");
             COOMatrix_infoOutAsJSON(cooMatrix, out);
             fprintf(out, ",\n");
@@ -191,19 +174,12 @@ int main(int argc, char *argv[]) {
             fprintf(out, ",\n");
             fprintf(out, "\"GPUresult\": ");
             SpMVResultCUDA_outAsJSON(&gpuResult, out);
-            fprintf(out, ",\n");
-            fprintf(out, "\"OpenMPELLresult\": ");
-            SpMVResultCPU_outAsJSON(&openmpELLResult, out);
-            fprintf(out, ",\n");
-            fprintf(out, "\"OpenMPCOOresult\": ");
-            SpMVResultCPU_outAsJSON(&openmpCOOResult, out);
             fprintf(out, "\n},\n");
             ELLMatrix_free_wpm(ellMatrix);
         }
         Vector_free_wpm(X);
         Vector_free_wpm(Y);
         Vector_free(Z);
-        Vector_free(U);
         COOMatrix_free(lower);
         COOMatrix_free_wpm(higher);
         COOMatrix_free(cooMatrix);
