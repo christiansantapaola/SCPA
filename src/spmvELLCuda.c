@@ -26,10 +26,10 @@ void spmvWithPinnedMemory(char *mtx) {
     Vector_set(X, 1.0f);
     Vector_set(Y, 0.0f);
     Vector_set(Z, 0.0f);
-    COOMatrix *first, *second;
-    first = COOMatrix_new();
-    second = COOMatrix_new();
-    int noSplit = COOMatrix_split_wpm(cooMatrix, first, second, 2);
+    COOMatrix *lower, *higher;
+    lower = COOMatrix_new();
+    higher = COOMatrix_new();
+    int noSplit = COOMatrix_split_wpm(cooMatrix, lower, higher, 64);
     if (noSplit == -1) {
         fprintf(stderr, "COOMatrix_split failed!");
         exit(EXIT_FAILURE);
@@ -56,18 +56,19 @@ void spmvWithPinnedMemory(char *mtx) {
         fprintf(stdout, "\n}\n");
         ELLMatrix_free_wpm(ellMatrix);
     } else {
-        fprintf(stderr, "split\n");
-        ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO_wpm(first);
         SpMVResultCPU cpuResult;
-//        ELLMatrix_SpMV_CPU(ellMatrix, X, Y, &cpuResult);
-//        COOMatrix_SpMV_CPU(second, X, Y, &cpuResult);
-        COOMatrix_SpMV_CPU(cooMatrix, X, Y, &cpuResult);
         SpMVResultCUDA gpuResult;
+        ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO_wpm(lower);
+        if (!ellMatrix) {
+            perror("ELLMatrix_new()");
+            exit(EXIT_FAILURE);
+        }
+        COOMatrix_SpMV_CPU(cooMatrix, X, Z, &cpuResult);
         ELLMatrix_transpose(ellMatrix);
-        ELLMatrixHyb_SpMV_GPU_wpm(ellMatrix, second, X, Z, &gpuResult);
-        int success = Vector_equals(Y, Z);
+        ELLMatrixHyb_SpMV_GPU_wpm(ellMatrix, higher, X, Y, &gpuResult);
+        int successGPU = Vector_equals(Y, Z);
         fprintf(stdout, "{\n");
-        fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
+        fprintf(stdout, "\"success\": %s,\n", (successGPU) ? "true" : "false");
         fprintf(stdout, "\"split\": %s,\n", "true");
         fprintf(stdout, "\"MatrixInfo\": ");
         ELLMatrix_infoOutAsJSON(ellMatrix, stdout);
@@ -80,8 +81,8 @@ void spmvWithPinnedMemory(char *mtx) {
         fprintf(stdout, "\n}\n");
         ELLMatrix_free_wpm(ellMatrix);
     }
-    COOMatrix_free(first);
-    COOMatrix_free_wpm(second);
+    COOMatrix_free(lower);
+    COOMatrix_free_wpm(higher);
     Vector_free(Z);
     Vector_free_wpm(Y);
     Vector_free_wpm(X);

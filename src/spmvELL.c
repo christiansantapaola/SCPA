@@ -119,12 +119,12 @@ int main(int argc, char *argv[]) {
             perror("COOMatrix_new()");
             exit(EXIT_FAILURE);
         }
-        int ret = COOMatrix_split_wpm(cooMatrix, lower, higher, MATRIX_SPLIT_THRESHOLD);
-        if (ret == -1) {
+        int noSplit = COOMatrix_split_wpm(cooMatrix, lower, higher, MATRIX_SPLIT_THRESHOLD);
+        if (noSplit == -1) {
             fprintf(stderr, "error in COOMatrix_split:\n");
             exit(EXIT_FAILURE);
         }
-        if (ret) {
+        if (noSplit) {
             SpMVResultCPU cpuResult;
             SpMVResultCUDA gpuResult;
             ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO_wpm(cooMatrix);
@@ -153,14 +153,14 @@ int main(int argc, char *argv[]) {
         } else {
             SpMVResultCPU cpuResult;
             SpMVResultCUDA gpuResult;
-            ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO_wpm(lower);
-            if (!ellMatrix) {
+            ELLMatrix *ellLower = ELLMatrix_new_fromCOO_wpm(lower);
+            if (!ellLower) {
                 perror("ELLMatrix_new()");
                 exit(EXIT_FAILURE);
             }
             COOMatrix_SpMV_CPU(cooMatrix, X, Z, &cpuResult);
-            ELLMatrix_transpose(ellMatrix);
-            ELLMatrixHyb_SpMV_GPU_wpm(ellMatrix, higher, X, Y, &gpuResult);
+            ELLMatrix_transpose(ellLower);
+            ELLMatrixHyb_SpMV_GPU_wpm(ellLower, higher, X, Y, &gpuResult);
             int successGPU = Vector_equals(Y, Z);
             fprintf(out, "{\n");
             fprintf(out, "\"matrix\": \"%s\",\n", entry->d_name);
@@ -175,7 +175,7 @@ int main(int argc, char *argv[]) {
             fprintf(out, "\"GPUresult\": ");
             SpMVResultCUDA_outAsJSON(&gpuResult, out);
             fprintf(out, "\n},\n");
-            ELLMatrix_free_wpm(ellMatrix);
+            ELLMatrix_free_wpm(ellLower);
         }
         Vector_free_wpm(X);
         Vector_free_wpm(Y);
