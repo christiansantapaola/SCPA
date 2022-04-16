@@ -112,7 +112,6 @@ int main(int argc, char *argv[]) {
         }
         SpMVResultCPU cpuResult;
         SpMVResultCUDA gpuResult;
-        SpMVResultCPU openmpResult;
         CSRMatrix_SpMV_GPU_wpm(csrMatrix, X, Y, &gpuResult);
         COOMatrix_SpMV_CPU(cooMatrix, X, Z, &cpuResult);
         int successGPU = Vector_equals(Z, Y);
@@ -127,9 +126,6 @@ int main(int argc, char *argv[]) {
         fprintf(out, ",\n");
         fprintf(out, "\"GPUresult\": ");
         SpMVResultCUDA_outAsJSON(&gpuResult, out);
-        fprintf(out, ",\n");
-        fprintf(out, "\"OpenMPresult\": ");
-        SpMVResultCPU_outAsJSON(&openmpResult, out);
         fprintf(out, "\n},\n");
         CSRMatrix_free_wpm(csrMatrix);
         Vector_free_wpm(X);
