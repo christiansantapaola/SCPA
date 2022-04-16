@@ -12,7 +12,7 @@
 
 
 #define PROGRAM_NAME "spmvELL"
-#define MATRIX_SPLIT_THRESHOLD 64
+#define MATRIX_SPLIT_THRESHOLD 32
 
 void print_status_bar(int used, int total,char *file) {
     fprintf(stderr, "\33[2K\r[");

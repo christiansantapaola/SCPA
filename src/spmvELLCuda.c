@@ -7,7 +7,7 @@
 #include "SpMV.h"
 
 #define PROGRAM_NAME "spmvELLCuda"
-#define MATRIX_SPLIT 96
+#define MATRIX_SPLIT_THRESHOLD 32
 
 void spmvWithPinnedMemory(char *mtx) {
     MTXParser *mtxParser = MTXParser_new(mtx);
@@ -30,7 +30,7 @@ void spmvWithPinnedMemory(char *mtx) {
     COOMatrix *lower, *higher;
     lower = COOMatrix_new();
     higher = COOMatrix_new();
-    int noSplit = COOMatrix_split(cooMatrix, lower, higher, MATRIX_SPLIT);
+    int noSplit = COOMatrix_split(cooMatrix, lower, higher, MATRIX_SPLIT_THRESHOLD);
     if (noSplit == -1) {
         fprintf(stderr, "COOMatrix_split failed!");
         exit(EXIT_FAILURE);
