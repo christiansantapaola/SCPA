@@ -68,7 +68,7 @@ void spmvWithPinnedMemory(char *mtx) {
         ELLMatrix_transpose(ellMatrix);
         //ELLMatrix_SpMV_GPU_wpm(ellMatrix, X, Y, &gpuResult);
         //COOMatrix_SpMV_CPU(higher, X, Y, &cooResult);
-        ELLMatrixHyb_SpMV_GPU_wpm(ellMatrix, cooMatrix, X, Y, &gpuResult);
+        ELLMatrixHyb_SpMV_GPU_wpm(ellMatrix, higher, X, Y, &gpuResult);
         int successGPU = Vector_equals(Y, Z);
         fprintf(stdout, "{\n");
         fprintf(stdout, "\"success\": %s,\n", (successGPU) ? "true" : "false");
