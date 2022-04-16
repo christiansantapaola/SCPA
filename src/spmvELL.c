@@ -151,7 +151,7 @@ int main(int argc, char *argv[]) {
             fprintf(out, "\n},\n");
             ELLMatrix_free_wpm(ellMatrix);
         } else {
-            SpMVResultCPU cpuResult;
+            SpMVResultCPU cpuResult, cooResult;
             SpMVResultCUDA gpuResult;
             ELLMatrix *ellLower = ELLMatrix_new_fromCOO_wpm(lower);
             if (!ellLower) {
@@ -160,7 +160,9 @@ int main(int argc, char *argv[]) {
             }
             COOMatrix_SpMV_CPU(cooMatrix, X, Z, &cpuResult);
             ELLMatrix_transpose(ellLower);
-            ELLMatrixHyb_SpMV_GPU_wpm(ellLower, higher, X, Y, &gpuResult);
+            ELLMatrix_SpMV_GPU_wpm(ellLower, X, Y, &gpuResult);
+            COOMatrix_SpMV_CPU(higher, X, Y, &cooResult);
+            gpuResult.GPUTotalTime += cooResult.timeElapsed;
             int successGPU = Vector_equals(Y, Z);
             fprintf(out, "{\n");
             fprintf(out, "\"matrix\": \"%s\",\n", entry->d_name);

@@ -11,6 +11,7 @@ typedef struct SpMVResultCUDA {
     float GPUKernelExecutionTime;
     float GPUOutputFromDeviceTime;
     float GPUTotalTime;
+    float CPUTime;
 } SpMVResultCUDA;
 
 typedef struct SpMVResultOpenMP {

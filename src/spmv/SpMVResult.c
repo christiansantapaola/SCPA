@@ -7,6 +7,7 @@ void SpMVResultCUDA_outAsJSON(SpMVResultCUDA *result, FILE *out) {
     fprintf(out, "%s: %f,\n", "\"GPUKernelExecutionTime\"",  result->GPUKernelExecutionTime);
     fprintf(out, "%s: %f,\n", "\"GPUOutputFromDeviceTime\"",  result->GPUOutputFromDeviceTime);
     fprintf(out, "%s: %f\n", "\"GPUTotalTime\"",  result->GPUTotalTime);
+    fprintf(out, "%s: %f\n", "\"CPUTime\"",  result->CPUTime);
     fprintf(out, "%s", "}");
 }
 

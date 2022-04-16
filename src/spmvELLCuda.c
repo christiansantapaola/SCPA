@@ -7,6 +7,7 @@
 #include "SpMV.h"
 
 #define PROGRAM_NAME "spmvELLCuda"
+#define MATRIX_SPLIT 96
 
 void spmvWithPinnedMemory(char *mtx) {
     MTXParser *mtxParser = MTXParser_new(mtx);
@@ -29,7 +30,7 @@ void spmvWithPinnedMemory(char *mtx) {
     COOMatrix *lower, *higher;
     lower = COOMatrix_new();
     higher = COOMatrix_new();
-    int noSplit = COOMatrix_split_wpm(cooMatrix, lower, higher, 64);
+    int noSplit = COOMatrix_split(cooMatrix, lower, higher, MATRIX_SPLIT);
     if (noSplit == -1) {
         fprintf(stderr, "COOMatrix_split failed!");
         exit(EXIT_FAILURE);
@@ -56,7 +57,7 @@ void spmvWithPinnedMemory(char *mtx) {
         fprintf(stdout, "\n}\n");
         ELLMatrix_free_wpm(ellMatrix);
     } else {
-        SpMVResultCPU cpuResult;
+        SpMVResultCPU cpuResult, cooResult;
         SpMVResultCUDA gpuResult;
         ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO_wpm(lower);
         if (!ellMatrix) {
@@ -65,7 +66,9 @@ void spmvWithPinnedMemory(char *mtx) {
         }
         COOMatrix_SpMV_CPU(cooMatrix, X, Z, &cpuResult);
         ELLMatrix_transpose(ellMatrix);
-        ELLMatrixHyb_SpMV_GPU_wpm(ellMatrix, higher, X, Y, &gpuResult);
+        //ELLMatrix_SpMV_GPU_wpm(ellMatrix, X, Y, &gpuResult);
+        //COOMatrix_SpMV_CPU(higher, X, Y, &cooResult);
+        ELLMatrixHyb_SpMV_GPU_wpm(ellMatrix, cooMatrix, X, Y, &gpuResult);
         int successGPU = Vector_equals(Y, Z);
         fprintf(stdout, "{\n");
         fprintf(stdout, "\"success\": %s,\n", (successGPU) ? "true" : "false");
