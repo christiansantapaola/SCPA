@@ -47,7 +47,6 @@ int main(int argc, char *argv[]) {
     SpMVResultCPU cpu;
     SpMVResultCUDA gpu;
     COOMatrix_SpMV_CPU(matrix, X, Y, &cpu);
-    COOMatrix_SpMV_GPU(matrix, X, Z, &gpu);
     int success = Vector_equals(Y, Z);
     fprintf(stdout, "{\n");
     fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");

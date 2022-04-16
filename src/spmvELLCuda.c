@@ -57,7 +57,7 @@ void spmvWithPinnedMemory(char *mtx) {
         fprintf(stdout, "\n}\n");
         ELLMatrix_free_wpm(ellMatrix);
     } else {
-        SpMVResultCPU cpuResult, cooResult;
+        SpMVResultCPU cpuResult;
         SpMVResultCUDA gpuResult;
         ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO_wpm(lower);
         if (!ellMatrix) {

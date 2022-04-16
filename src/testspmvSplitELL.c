@@ -45,7 +45,6 @@ int main(int argc, char *argv[]) {
     }
     Vector_set(Z, 0.0f);
 
-    SpMVResultCPU cpu;
     SpMVResultCUDA cpu1, cpu2;
     COOMatrix *lower, *higher;
     lower = COOMatrix_new();
