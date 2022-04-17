@@ -53,3 +53,14 @@ void Vector_outAsJSON(Vector *vector, FILE *out) {
     fprintf(out, "%f ],\n", vector->data[vector->size - 1]);
     fprintf(out, "%s", "}");
 }
+
+int Vector_sum(Vector *v1, Vector *v2) {
+    if (v1->size != v2->size) {
+        return -1;
+    }
+#pragma omp parallel for schedule(auto) default(shared)
+    for (u_int64_t i = 0; i < v1->size; i++) {
+        v1->data[i] += v2->data[i];
+    }
+    return 0;
+}

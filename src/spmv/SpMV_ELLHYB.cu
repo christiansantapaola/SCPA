@@ -95,6 +95,7 @@ extern "C" void ELLMatrixHyb_SpMV_GPU_wpm(const ELLMatrix *ellMatrix, const COOM
     cudaDeviceProp prop;
     BlockGridInfo ellBlockGridInfo;
     SpMVResultCPU cooresult;
+    Vector *y_coo;
     if (!cooMatrix || !ellMatrix || !x || !y) {
         if (result) {
             result->success = 0;
@@ -128,8 +129,9 @@ extern "C" void ELLMatrixHyb_SpMV_GPU_wpm(const ELLMatrix *ellMatrix, const COOM
     cudaEventCreate(&outstart);
     cudaEventCreate(&outstop);
 
+    y_coo = Vector_new(y->size);
+    Vector_set(y_coo, 0.0f);
     cudaEventRecord(instart);
-
     checkCudaErrors(cudaMalloc(&(d_x), x->size * sizeof (float )));
     checkCudaErrors(cudaMalloc(&(d_y), y->size * sizeof (float )));
     checkCudaErrors(cudaMalloc(&(d_ellmatrix_data), ellMatrix->data_size * sizeof (float )));
@@ -142,9 +144,10 @@ extern "C" void ELLMatrixHyb_SpMV_GPU_wpm(const ELLMatrix *ellMatrix, const COOM
     cudaEventRecord(start);
     SpMV_ELL_kernel<<<ellBlockGridInfo.gridSize, ellBlockGridInfo.blockSize>>>(ellMatrix->row_size, d_ellmatrix_data, d_ellmatrix_col_index, ellMatrix->num_elem, d_x, d_y);
     cudaEventRecord(stop);
-    COOMatrix_SpMV_CPU(cooMatrix, x, y, &cooresult);
+    COOMatrix_SpMV_CPU(cooMatrix, x, y_coo, &cooresult);
     cudaEventRecord(outstart);
     checkCudaErrors(cudaMemcpy(y->data, d_y, y->size * sizeof(float), cudaMemcpyDeviceToHost));
+    Vector_sum(y, y_coo);
     checkCudaErrors(cudaFree(d_ellmatrix_data));
     checkCudaErrors(cudaFree(d_ellmatrix_col_index));
     checkCudaErrors(cudaFree(d_x));

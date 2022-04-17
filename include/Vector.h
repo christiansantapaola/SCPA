@@ -17,11 +17,9 @@ Vector *Vector_new(u_int64_t size);
 void Vector_free(Vector *vector);
 Vector *Vector_new_wpm(unsigned int size);
 void Vector_free_wpm(Vector *vector);
-    void Vector_set(Vector *vector, float value);
-    void Vector_outAsJSON(Vector *vector, FILE *out);
-    int Vector_equals(const Vector *v1, const Vector *v2);
-//    void swap(SwapMap& swapMap);
-//    void swapInverse(SwapMap& swapMap);
-
+void Vector_set(Vector *vector, float value);
+void Vector_outAsJSON(Vector *vector, FILE *out);
+int Vector_equals(const Vector *v1, const Vector *v2);
+int Vector_sum(Vector *v1, Vector *v2);
 
 #endif //SPARSEMATRIX_VECTOR_H
