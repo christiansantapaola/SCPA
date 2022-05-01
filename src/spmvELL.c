@@ -100,8 +100,11 @@ int main(int argc, char *argv[]) {
             ELLMatrix *d_ellMatrix = ELLMatrix_to_CUDA(ellMatrix);
             Vector *d_x = Vector_to_CUDA(X);
             Vector *d_y = Vector_to_CUDA(Y);
+            SpMVResultCUDA tmp;
             for (int i = 0; i < MAX_ITERATION; i++) {
-                ELLMatrix_SpMV_CUDA(d_ellMatrix, d_x, d_y, &gpuResult);
+                ELLMatrix_SpMV_CUDA(d_ellMatrix, d_x, d_y, &tmp);
+                gpuResult.GPUKernelExecutionTime += tmp.GPUKernelExecutionTime;
+                gpuResult.CPUTime += tmp.CPUTime;
             }
             Vector_free_CUDA(d_x);
             Vector_free_CUDA(d_y);
@@ -113,8 +116,12 @@ int main(int argc, char *argv[]) {
                 exit(EXIT_FAILURE);
             }
             ELLMatrix *d_ellMatrix = ELLMatrix_to_CUDA(ellLower);
+            SpMVResultCUDA tmp;
             for (int i = 0; i < MAX_ITERATION; i++) {
                 ELLCOOMatrix_SpMV_CUDA(ellLower, higher, X, Y, &gpuResult);
+                gpuResult.GPUKernelExecutionTime += tmp.GPUKernelExecutionTime;
+                gpuResult.CPUTime += tmp.CPUTime;
+
             }
             ELLMatrix_free_CUDA(d_ellMatrix);
             ELLMatrix_free_wpm(ellLower);
