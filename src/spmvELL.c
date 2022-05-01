@@ -102,10 +102,8 @@ int main(int argc, char *argv[]) {
             Vector *d_y = Vector_to_CUDA(Y);
             for (int i = 0; i < MAX_ITERATION; i++) {
                 ELLMatrix_SpMV_CUDA(d_ellMatrix, d_x, d_y, &gpuResult);
-                Vector_free_CUDA(d_x);
-                d_x = d_y;
-                d_y = Vector_to_CUDA(d_y);
             }
+            Vector_free_CUDA(d_x);
             Vector_free_CUDA(d_y);
             ELLMatrix_free_wpm(ellMatrix);
         } else {
@@ -117,11 +115,7 @@ int main(int argc, char *argv[]) {
             ELLMatrix *d_ellMatrix = ELLMatrix_to_CUDA(ellLower);
             for (int i = 0; i < MAX_ITERATION; i++) {
                 ELLCOOMatrix_SpMV_CUDA(ellLower, higher, X, Y, &gpuResult);
-                Vector_free_wpm(X);
-                X = Y;
-                Y = Vector_new_wpm(cooMatrix->row_size);
             }
-            Vector_free_wpm(Y);
             ELLMatrix_free_CUDA(d_ellMatrix);
             ELLMatrix_free_wpm(ellLower);
         }

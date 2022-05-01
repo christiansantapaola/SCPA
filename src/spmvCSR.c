@@ -106,11 +106,6 @@ int main(int argc, char *argv[]) {
             SpMVResultCUDA gpuResultTmp;
             CSRMatrix_SpMV_CUDA(d_csrMatrix, d_x, d_y, &gpuResultTmp);
             gpuResult.GPUKernelExecutionTime += gpuResultTmp.GPUKernelExecutionTime;
-            if (i != MAX_ITERATION - 1) {
-                Vector_free_CUDA(d_x);
-                d_x = d_y;
-                d_y = Vector_to_CUDA(zeroes);
-            }
         }
         Vector *z = Vector_from_CUDA(d_y);
         int isFirst = fileProcessed == 0;
