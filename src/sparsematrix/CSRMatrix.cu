@@ -54,3 +54,32 @@ extern "C" void CSRMatrix_free_wpm(CSRMatrix *csrMatrix) {
     checkCudaErrors(cudaFreeHost(csrMatrix->row_pointer));
     free(csrMatrix);
 }
+
+extern "C" CSRMatrix *CSRMatrix_to_CUDA(CSRMatrix *h_matrix) {
+    if (!h_matrix) {
+        return NULL;
+    }
+    CSRMatrix *d_matrix = (CSRMatrix *)malloc(sizeof(CSRMatrix));
+    if (!d_matrix) {
+        return NULL;
+    }
+    d_matrix->row_size = h_matrix->row_size;
+    d_matrix->col_size = h_matrix->col_size;
+    d_matrix->num_non_zero_elements = h_matrix->num_non_zero_elements;
+    checkCudaErrors(cudaMalloc(&d_matrix->data, sizeof(float) * d_matrix->num_non_zero_elements));
+    checkCudaErrors(cudaMalloc(&d_matrix->col_index, sizeof(u_int64_t) * d_matrix->num_non_zero_elements));
+    checkCudaErrors(cudaMalloc(&d_matrix->row_pointer, sizeof(u_int64_t) * (d_matrix->row_size + 1)));
+    checkCudaErrors(cudaMemcpyAsync(d_matrix->data, h_matrix->data, sizeof(float) * d_matrix->num_non_zero_elements, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpyAsync(d_matrix->col_index, h_matrix->col_index, sizeof(u_int64_t) * d_matrix->num_non_zero_elements, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpyAsync(d_matrix->row_pointer, h_matrix->row_pointer, sizeof(u_int64_t) * (d_matrix->row_size + 1), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaDeviceSynchronize());
+    return d_matrix;
+}
+
+extern "C" void CSRMatrix_free_CUDA(CSRMatrix *d_matrix) {
+    if (!d_matrix) return;
+    checkCudaErrors(cudaFree(d_matrix->row_pointer));
+    checkCudaErrors(cudaFree(d_matrix->col_index));
+    checkCudaErrors(cudaFree(d_matrix->data));
+    free(d_matrix);
+}

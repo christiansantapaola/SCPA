@@ -10,7 +10,6 @@
 #include "SpMV.h"
 
 #define PROGRAM_NAME "spmvCSRCuda"
-#define USE_PINNED_MEMORY 0
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -38,23 +37,21 @@ int main(int argc, char *argv[]) {
         perror("Vector_new_wpm()");
         return EXIT_FAILURE;
     }
-    Vector* Y = Vector_new(csrMatrix->row_size);
+    Vector* Y = Vector_new_wpm(csrMatrix->row_size);
     if (!Y) {
         perror("Vector_new");
         return EXIT_FAILURE;
     }
-    Vector* Z = Vector_new_wpm(csrMatrix->row_size);
-    if (!Z) {
-        perror("Vector_new_wpm");
-        return EXIT_FAILURE;
-    }
     Vector_set(X, 1.0f);
     Vector_set(Y, 0.0f);
-    Vector_set(Z, 0.0f);
-    SpMVResultCPU cpuResult;
-    COOMatrix_SpMV_CPU(cooMatrix, X, Y, &cpuResult);
-    SpMVResultCUDA gpuResult;
-    CSRMatrix_SpMV_GPU_wpm(csrMatrix, X, Z, &gpuResult);
+    SpMVResultCPU cpuResult = {0};
+    SpMVResultCUDA gpuResult = {0};
+    CSRMatrix *d_csrMatrix = CSRMatrix_to_CUDA(csrMatrix);
+    Vector *d_x = Vector_to_CUDA(X);
+    Vector *d_y = Vector_to_CUDA(Y);
+    COOMatrix_SpMV(cooMatrix, X, Y, &cpuResult);
+    CSRMatrix_SpMV_CUDA(d_csrMatrix, d_x, d_y, &gpuResult);
+    Vector *Z = Vector_from_CUDA(d_y);
     int success = Vector_equals(Y, Z);
     fprintf(stdout, "{\n");
     fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
@@ -69,8 +66,10 @@ int main(int argc, char *argv[]) {
         SpMVResultCUDA_outAsJSON(&gpuResult, stdout);
     }
     fprintf(stdout, "\n}\n");
-    Vector_free_wpm(Z);
-    Vector_free(Y);
+    Vector_free_CUDA(d_x);
+    Vector_free_CUDA(d_y);
+    Vector_free(Z);
+    Vector_free_wpm(Y);
     Vector_free_wpm(X);
     CSRMatrix_free_wpm(csrMatrix);
     COOMatrix_free(cooMatrix);

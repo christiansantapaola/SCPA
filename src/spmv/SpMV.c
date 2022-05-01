@@ -1,18 +1,12 @@
 #include "SpMV.h"
 
-void CSRMatrix_SpMV_CPU(const CSRMatrix *matrix,const Vector *x, Vector *y, SpMVResultCPU *result) {
+int CSRMatrix_SpMV(const CSRMatrix *matrix, const Vector *x, Vector *y, SpMVResultCPU *result) {
     clock_t start, end;
     if (!matrix || !x || !y) {
-        if (result) {
-            result->success = 0;
-        }
-        return;
+        return SPMV_FAIL;
     }
     if (x->size != matrix->col_size && y->size != matrix->row_size) {
-        if (result) {
-            result->success = 0;
-        }
-        return;
+        return SPMV_FAIL;
     }
     if (result) {
         memset(result, 0, sizeof(*result));
@@ -29,29 +23,19 @@ void CSRMatrix_SpMV_CPU(const CSRMatrix *matrix,const Vector *x, Vector *y, SpMV
     }
     end = clock();
     if (result) {
-        result->success = 1;
         result->timeElapsed = ((float) (end - start)) / CLOCKS_PER_SEC * 1000.0f;
     }
+    return SPMV_SUCCESS;
 }
 
-void ELLMatrix_SpMV_CPU(const ELLMatrix *matrix,const Vector *x, Vector *y, SpMVResultCPU *result) {
+int ELLMatrix_SpMV(const ELLMatrix *matrix, const Vector *x, Vector *y, SpMVResultCPU *result) {
     clock_t start, end;
     if (!matrix || !x || !y) {
-        if (result) {
-            result->success = 0;
-        }
-        return;
-    }
-    if (result) {
-        memset(result, 0, sizeof(*result));
-        // memset(&result->blockGridInfo, 0, sizeof(result->blockGridInfo));
+        return SPMV_FAIL;
     }
 
     if (x->size != matrix->col_size && y->size != matrix->row_size) {
-        if (result) {
-            result->success = 0;
-        }
-        return;
+        return SPMV_FAIL;
     }
 
     start = clock();
@@ -68,30 +52,20 @@ void ELLMatrix_SpMV_CPU(const ELLMatrix *matrix,const Vector *x, Vector *y, SpMV
     end = clock();
 
     if (result) {
-        result->success = 1;
         result->timeElapsed = ((float) (end - start)) / CLOCKS_PER_SEC * 1000.0f;
     }
+    return SPMV_SUCCESS;
 }
 
 
-void COOMatrix_SpMV_CPU(const COOMatrix *matrix,const Vector *x, Vector *y, SpMVResultCPU *result) {
+int COOMatrix_SpMV(const COOMatrix *matrix, const Vector *x, Vector *y, SpMVResultCPU *result) {
     clock_t start, end;
     if (!matrix || !x || !y) {
-        if (result) {
-            result->success = 0;
-        }
-        return;
-    }
-    if (result) {
-        memset(result, 0, sizeof(*result));
-        // memset(&result->blockGridInfo, 0, sizeof(result->blockGridInfo));
+        return SPMV_FAIL;
     }
 
     if (x->size != matrix->col_size && y->size != matrix->row_size) {
-        if (result) {
-            result->success = 0;
-        }
-        return;
+        return SPMV_FAIL;
     }
 
     start = clock();
@@ -101,9 +75,9 @@ void COOMatrix_SpMV_CPU(const COOMatrix *matrix,const Vector *x, Vector *y, SpMV
     end = clock();
 
     if (result) {
-        result->success = 1;
         result->timeElapsed = ((float) (end - start)) / CLOCKS_PER_SEC * 1000.0f;
     }
+    return SPMV_SUCCESS;
 }
 
 

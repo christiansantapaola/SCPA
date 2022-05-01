@@ -8,34 +8,28 @@
 #include "Vector.h"
 #include "CSRMatrix.h"
 #include "SpMV.h"
+#include "util.h"
 
 #define PROGRAM_NAME "spmvCSR"
+#define MAX_ITERATION 512
 
-void print_status_bar(int used, int total,char *file) {
-    fprintf(stderr, "\33[2K\r[");
-    for (int i = 0; i < used; i++) {
-        fprintf(stderr, "#");
+void outAsJSON(char *absolutePath, CSRMatrix *csrMatrix, SpMVResultCUDA *gpuResult,int isFirst, int isLast, FILE *out) {
+    if (isFirst) {
+        fprintf(out, "{ \"CSRResult\": [\n");
     }
-    for (int i = used; i < total; i++) {
-        fprintf(stderr, "-");
+    fprintf(out, "{\n");
+    fprintf(out, "\"matrix\": \"%s\",\n", absolutePath);
+    fprintf(out, "\"MatrixInfo\": ");
+    CSRMatrix_infoOutAsJSON(csrMatrix, out);
+    fprintf(out, ",\n");
+    fprintf(out, "\"GPUresult\": ");
+    SpMVResultCUDA_outAsJSON(gpuResult, out);
+    if (!isLast) {
+        fprintf(out, "\n},\n");
+    } else {
+        fprintf(out, "n}\n]}\n");
     }
-    fprintf(stderr, "] %.2f %s", (double) used / (double) total, file);
-}
 
-int count_directory(const char *dirpath) {
-    int count = 0;
-    struct dirent *entry;
-    DIR *dir = opendir(dirpath);
-    if (!dir) {
-        perror(dirpath);
-        fprintf(stderr, "USAGE: %s dir\n", PROGRAM_NAME);
-        return -1;
-    }
-    while ((entry = readdir(dir)) != NULL) {
-        count++;
-    }
-    closedir(dir);
-    return count;
 }
 
 int main(int argc, char *argv[]) {
@@ -49,7 +43,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "USAGE: %s dir\n", PROGRAM_NAME);
         return EXIT_FAILURE;
     }
-    int numDir = count_directory(argv[1]) - 2;
+    int numDir = count_file_in_directory(argv[1]) - 2;
     struct dirent *entry;
     FILE *out = (argc >= 3) ? fopen(argv[2], "wb+") : stdout;
     if (!out) {
@@ -57,7 +51,6 @@ int main(int argc, char *argv[]) {
         closedir(dir);
         return EXIT_FAILURE;
     }
-    fprintf(out, "{ \"CSRResult\": [\n");
     char absolutePath [PATH_MAX+1];
     chdir(argv[1]);
     int fileProcessed = 0;
@@ -83,58 +76,54 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "MTXParser_parser(%p) failed\n", mtxParser);
             exit(EXIT_FAILURE);
         }
-        Vector *X = Vector_new_wpm(cooMatrix->row_size);
-        if (!X) {
+        Vector *h_x = Vector_new_wpm(cooMatrix->row_size);
+        if (!h_x) {
             fprintf(stderr, "Vector_new_wpm(%lu)", cooMatrix->row_size);
             perror("");
             exit(EXIT_FAILURE);
         }
-        Vector_set(X, 1.0f);
-        Vector *Y = Vector_new_wpm(cooMatrix->col_size);
-        if (!Y) {
+        Vector_set(h_x, 1.0f);
+        Vector *h_y = Vector_new_wpm(cooMatrix->col_size);
+        if (!h_y) {
             fprintf(stderr, "Vector_new_wpm(%lu)", cooMatrix->col_size);
             perror("");
             exit(EXIT_FAILURE);
         }
-        Vector_set(Y, 0.0f);
-        Vector *Z = Vector_new(cooMatrix->col_size);
-        if (!Z) {
-            fprintf(stderr, "Vector_(%lu)", cooMatrix->col_size);
-            perror("");
-            exit(EXIT_FAILURE);
-        }
-        Vector_set(Z, 0.0f);
-        CSRMatrix *csrMatrix = CSRMatrix_new_wpm(cooMatrix);
-        if (!csrMatrix) {
+        Vector_set(h_y, 0.0f);
+        SpMVResultCUDA gpuResult= {0};
+        Vector *d_x = Vector_to_CUDA(h_x);
+        Vector *d_y = Vector_to_CUDA(h_y);
+        CSRMatrix *h_csrMatrix = CSRMatrix_new_wpm(cooMatrix);
+        if (!h_csrMatrix) {
             perror("CSRMatrix_new_wpm()");
             exit(EXIT_FAILURE);
 
         }
-        SpMVResultCPU cpuResult;
-        SpMVResultCUDA gpuResult;
-        CSRMatrix_SpMV_GPU_wpm(csrMatrix, X, Y, &gpuResult);
-        COOMatrix_SpMV_CPU(cooMatrix, X, Z, &cpuResult);
-        int successGPU = Vector_equals(Z, Y);
-        fprintf(out, "{\n");
-        fprintf(out, "\"matrix\": \"%s\",\n", absolutePath);
-        fprintf(out, "\"successGPU\": %s,\n", (successGPU) ? "true" : "false");
-        fprintf(out, "\"MatrixInfo\": ");
-        CSRMatrix_infoOutAsJSON(csrMatrix, out);
-        fprintf(out, ",\n");
-        fprintf(out, "\"CPUresult\": ");
-        SpMVResultCPU_outAsJSON(&cpuResult, out);
-        fprintf(out, ",\n");
-        fprintf(out, "\"GPUresult\": ");
-        SpMVResultCUDA_outAsJSON(&gpuResult, out);
-        fprintf(out, "\n},\n");
-        CSRMatrix_free_wpm(csrMatrix);
-        Vector_free_wpm(X);
-        Vector_free_wpm(Y);
-        Vector_free(Z);
+        CSRMatrix *d_csrMatrix = CSRMatrix_to_CUDA(h_csrMatrix);
+        Vector *zeroes = Vector_new_wpm(h_csrMatrix->row_size);
+        Vector_set(zeroes, 0.0f);
+        for (u_int64_t i = 0; i < MAX_ITERATION; i++) {
+            SpMVResultCUDA gpuResultTmp;
+            CSRMatrix_SpMV_CUDA(d_csrMatrix, d_x, d_y, &gpuResultTmp);
+            gpuResult.GPUKernelExecutionTime += gpuResultTmp.GPUKernelExecutionTime;
+            if (i != MAX_ITERATION - 1) {
+                Vector_free_CUDA(d_x);
+                d_x = d_y;
+                d_y = Vector_to_CUDA(zeroes);
+            }
+        }
+        Vector *z = Vector_from_CUDA(d_y);
+        int isFirst = fileProcessed == 0;
+        int isLast = fileProcessed == numDir;
+        outAsJSON(absolutePath, h_csrMatrix, &gpuResult, isFirst, isLast, out);
+        CSRMatrix_free_CUDA(d_csrMatrix);
+        CSRMatrix_free_wpm(h_csrMatrix);
+        Vector_free_wpm(h_x);
+        Vector_free_wpm(h_y);
+        Vector_free(z);
         COOMatrix_free(cooMatrix);
         MTXParser_free(mtxParser);
     }
-    fprintf(out, "{}\n]}\n");
     print_status_bar(numDir, numDir, "");
     fprintf(stderr, "\n");
     return EXIT_SUCCESS;

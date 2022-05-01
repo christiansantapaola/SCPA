@@ -21,8 +21,11 @@ typedef struct ELLMatrix {
 ELLMatrix *ELLMatrix_new(CSRMatrix *csrMatrix);
 ELLMatrix *ELLMatrix_new_fromCOO(COOMatrix *cooMatrix);
 void ELLMatrix_free(ELLMatrix *ellMatrix);
-ELLMatrix *ELLMatrix_new_wpm(CSRMatrix *csrMatrix);
+ELLMatrix *ELLMatrix_new_fromCSR_wpm(CSRMatrix *csrMatrix);
 ELLMatrix *ELLMatrix_new_fromCOO_wpm(COOMatrix *cooMatrix);
+ELLMatrix *ELLMatrix_to_CUDA(ELLMatrix *h_matrix);
+void ELLMatrix_free_CUDA(ELLMatrix *d_ellMatrix);
+
 void ELLMatrix_free_wpm(ELLMatrix *ellMatrix);
 void ELLMatrix_transpose(ELLMatrix *ellMatrix);
 void ELLMatrix_outAsJSON(ELLMatrix *matrix, FILE *out);

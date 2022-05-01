@@ -1,69 +1,116 @@
 #include <stdio.h>
+#include <dirent.h>
+#include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "MTXParser.h"
 #include "COOMatrix.h"
-#include "Histogram.h"
 #include "Vector.h"
 #include "SpMV.h"
+#include "util.h"
 
-#define PROGRAM_NAME "spmvCOOCuda"
+#define PROGRAM_NAME "spmvCOO"
+#define MAX_ITERATION 512
+
+void outAsJSON(char *absolutePath, COOMatrix *cooMatrix, SpMVResultCPU *cpuResult,int isFirst, int isLast, FILE *out) {
+    if (isFirst) {
+        fprintf(out, "{ \"CSRResult\": [\n");
+    }
+    fprintf(out, "{\n");
+    fprintf(out, "\"matrix\": \"%s\",\n", absolutePath);
+    fprintf(out, "\"MatrixInfo\": ");
+    COOMatrix_infoOutAsJSON(cooMatrix, out);
+    fprintf(out, ",\n");
+    fprintf(out, "\"CPUresult\": ");
+    SpMVResultCPU_outAsJSON(cpuResult, out);
+    if (!isLast) {
+        fprintf(out, "\n},\n");
+    } else {
+        fprintf(out, "n}\n]}\n");
+    }
+
+}
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
-        fprintf(stderr, "%s file.mtx\n", PROGRAM_NAME);
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "USAGE: %s dir [output.json]\n", PROGRAM_NAME);
+        return EXIT_FAILURE;
     }
-    MTXParser *parser = MTXParser_new(argv[1]);
-    if (!parser) {
+    DIR *dir = opendir(argv[1]);
+    if (!dir) {
         perror(argv[1]);
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "USAGE: %s dir\n", PROGRAM_NAME);
+        return EXIT_FAILURE;
     }
-    COOMatrix *matrix = MTXParser_parse(parser);
-    if (!matrix) {
-        exit(EXIT_FAILURE);
+    int numDir = count_file_in_directory(argv[1]) - 2;
+    struct dirent *entry;
+    FILE *out = (argc >= 3) ? fopen(argv[2], "wb+") : stdout;
+    if (!out) {
+        perror(argv[2]);
+        closedir(dir);
+        return EXIT_FAILURE;
     }
-    Vector *X = Vector_new(matrix->row_size);
-    if (!X) {
-        fprintf(stderr, "Vector_new_wpm(%lu)", matrix->row_size);
-        perror("");
-        exit(EXIT_FAILURE);
+    char absolutePath [PATH_MAX+1];
+    chdir(argv[1]);
+    int fileProcessed = 0;
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_type != DT_REG) {
+            continue;
+        }
+        print_status_bar(fileProcessed, numDir, entry->d_name);
+        fileProcessed++;
+        memset(absolutePath, 0, PATH_MAX + 1);
+        char *ptr = realpath(entry->d_name, absolutePath);
+        if (!ptr) {
+            perror(entry->d_name);
+            exit(EXIT_FAILURE);
+        }
+        MTXParser *mtxParser = MTXParser_new(absolutePath);
+        if (!mtxParser) {
+            fprintf(stderr, "MTXParser_new(\"%s\") failed\n", absolutePath);
+            exit(EXIT_FAILURE);
+        }
+        COOMatrix *cooMatrix = MTXParser_parse(mtxParser);
+        if (!cooMatrix) {
+            fprintf(stderr, "MTXParser_parser(%p) failed\n", mtxParser);
+            exit(EXIT_FAILURE);
+        }
+        Vector *x = Vector_new(cooMatrix->row_size);
+        if (!x) {
+            fprintf(stderr, "Vector_new(%lu)", cooMatrix->row_size);
+            perror("");
+            exit(EXIT_FAILURE);
+        }
+        Vector_set(x, 1.0f);
+        Vector *y = Vector_new(cooMatrix->col_size);
+        if (!y) {
+            fprintf(stderr, "Vector_new(%lu)", cooMatrix->col_size);
+            perror("");
+            exit(EXIT_FAILURE);
+        }
+        Vector_set(y, 0.0f);
+        SpMVResultCPU cpuResult = {0};
+        Vector_set(y, 1.0f);
+        cpuResult.timeElapsed = 0;
+        for (u_int64_t i = 0; i < MAX_ITERATION; i++) {
+            SpMVResultCPU cpuResultTmp;
+            COOMatrix_SpMV(cooMatrix, x, y, &cpuResultTmp);
+            cpuResult.timeElapsed += cpuResultTmp.timeElapsed;
+            if (i != MAX_ITERATION - 1) {
+                Vector_free(x);
+                x = y;
+                y = Vector_new(cooMatrix->row_size);
+            }
+        }
+        int isFirst = fileProcessed == 0;
+        int isLast = fileProcessed == numDir;
+        outAsJSON(absolutePath, cooMatrix, &cpuResult, isFirst, isLast, out);
+        Vector_free(x);
+        Vector_free(y);
+        COOMatrix_free(cooMatrix);
+        MTXParser_free(mtxParser);
     }
-    Vector_set(X, 1.0f);
-    Vector *Y = Vector_new(matrix->col_size);
-    if (!Y) {
-        fprintf(stderr, "Vector_new_wpm(%lu)", matrix->col_size);
-        perror("");
-        exit(EXIT_FAILURE);
-    }
-    Vector_set(Y, 0.0f);
-    Vector *Z = Vector_new(matrix->col_size);
-    if (!Z) {
-        fprintf(stderr, "Vector_(%lu)", matrix->col_size);
-        perror("");
-        exit(EXIT_FAILURE);
-    }
-    Vector_set(Z, 0.0f);
-
-    SpMVResultCPU cpu;
-    SpMVResultCUDA gpu;
-    COOMatrix_SpMV_CPU(matrix, X, Y, &cpu);
-    int success = Vector_equals(Y, Z);
-    fprintf(stdout, "{\n");
-    fprintf(stdout, "\"success\": %s,\n", (success) ? "true" : "false");
-    fprintf(stdout, "\"MatrixInfo\": ");
-    COOMatrix_infoOutAsJSON(matrix, stdout);
-    if (success) {
-        fprintf(stdout, ",\n");
-        fprintf(stdout, "\"CPUresult\": ");
-        SpMVResultCPU_outAsJSON(&cpu, stdout);
-        fprintf(stdout, ",\n");
-        fprintf(stdout, "\"GPUresult\": ");
-        SpMVResultCUDA_outAsJSON(&gpu, stdout);
-    }
-    fprintf(stdout, "\n}\n");
-    Vector_free(Z);
-    Vector_free(Y);
-    Vector_free(X);
-    COOMatrix_free(matrix);
-    return 0;
+    print_status_bar(numDir, numDir, "");
+    fprintf(stderr, "\n");
+    return EXIT_SUCCESS;
 }

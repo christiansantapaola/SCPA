@@ -19,6 +19,8 @@ typedef struct CSRMatrix {
 CSRMatrix *CSRMatrix_new(COOMatrix *matrix);
 void CSRMatrix_free(CSRMatrix *matrix);
 CSRMatrix *CSRMatrix_new_wpm(COOMatrix *cooMatrix);
+CSRMatrix *CSRMatrix_to_CUDA(CSRMatrix *h_matrix);
+void CSRMatrix_free_CUDA(CSRMatrix *d_csrMatrix);
 void CSRMatrix_free_wpm(CSRMatrix *csrMatrix);
 void CSRMatrix_outAsJSON(CSRMatrix *matrix, FILE *out);
 void CSRMatrix_infoOutAsJSON(CSRMatrix *matrix, FILE *out);

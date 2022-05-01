@@ -6,41 +6,13 @@
 #include "MTXParser.h"
 #include "COOMatrix.h"
 #include "Vector.h"
-#include "CSRMatrix.h"
 #include "ELLMatrix.h"
 #include "SpMV.h"
-
+#include "util.h"
 
 #define PROGRAM_NAME "spmvELL"
 #define MATRIX_SPLIT_THRESHOLD 32
-
-void print_status_bar(int used, int total,char *file) {
-    fprintf(stderr, "\33[2K\r[");
-    for (int i = 0; i < used; i++) {
-        fprintf(stderr, "#");
-    }
-    for (int i = used; i < total; i++) {
-        fprintf(stderr, "-");
-    }
-    fprintf(stderr, "] %.2f %s", (double) used / (double) total, file);
-}
-
-int count_directory(const char *dirpath) {
-    int count = 0;
-    struct dirent *entry;
-    DIR *dir = opendir(dirpath);
-    if (!dir) {
-        perror(dirpath);
-        fprintf(stderr, "USAGE: %s dir\n", PROGRAM_NAME);
-        return -1;
-    }
-    while ((entry = readdir(dir)) != NULL) {
-        count++;
-    }
-    closedir(dir);
-    return count;
-}
-
+#define MAX_ITERATION 512
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -53,7 +25,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "USAGE: %s dir\n", PROGRAM_NAME);
         return EXIT_FAILURE;
     }
-    int numDir = count_directory(argv[1]) - 2;
+    int numDir = count_file_in_directory(argv[1]) - 2;
     struct dirent *entry;
     FILE *out = (argc >= 3) ? fopen(argv[2], "wb+") : stdout;
     if (!out) {
@@ -101,13 +73,6 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
         Vector_set(Y, 0.0f);
-        Vector *Z = Vector_new(cooMatrix->col_size);
-        if (!Z) {
-            fprintf(stderr, "Vector_(%lu)", cooMatrix->col_size);
-            perror("");
-            exit(EXIT_FAILURE);
-        }
-        Vector_set(Z, 0.0f);
         COOMatrix *lower, *higher;
         lower = COOMatrix_new();
         if (!lower) {
@@ -124,62 +89,56 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "error in COOMatrix_split:\n");
             exit(EXIT_FAILURE);
         }
+        SpMVResultCUDA gpuResult;
         if (noSplit) {
-            SpMVResultCPU cpuResult;
-            SpMVResultCUDA gpuResult;
             ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO_wpm(cooMatrix);
             if (!ellMatrix) {
                 perror("ELLMatrix_new()");
                 exit(EXIT_FAILURE);
             }
-            COOMatrix_SpMV_CPU(cooMatrix, X, Z, &cpuResult);
-            ELLMatrix_transpose(ellMatrix);
-            ELLMatrix_SpMV_GPU_wpm(ellMatrix, X, Y, &gpuResult);
-            int successGPU = Vector_equals(Y, Z);
-            fprintf(out, "{\n");
-            fprintf(out, "\"matrix\": \"%s\",\n", entry->d_name);
-            fprintf(out, "\"successGPU\": %s,\n", (successGPU) ? "true" : "false");
-            fprintf(out, "\"split\": %s,\n", "false");
-            fprintf(out, "\"MatrixInfo\": ");
-            COOMatrix_infoOutAsJSON(cooMatrix, out);
-            fprintf(out, ",\n");
-            fprintf(out, "\"CPUresult\": ");
-            SpMVResultCPU_outAsJSON(&cpuResult, out);
-            fprintf(out, ",\n");
-            fprintf(out, "\"GPUresult\": ");
-            SpMVResultCUDA_outAsJSON(&gpuResult, out);
-            fprintf(out, "\n},\n");
+            ELLMatrix *d_ellMatrix = ELLMatrix_to_CUDA(ellMatrix);
+            Vector *d_x = Vector_to_CUDA(X);
+            Vector *d_y = Vector_to_CUDA(Y);
+            for (int i = 0; i < MAX_ITERATION; i++) {
+                ELLMatrix_SpMV_CUDA(d_ellMatrix, d_x, d_y, &gpuResult);
+                if (i != MAX_ITERATION - 1) {
+                    Vector_free_CUDA(d_x);
+                    d_x = d_y;
+                    d_y = Vector_to_CUDA(Y);
+                }
+            }
+            Vector_free_CUDA(d_x);
+            Vector_free_CUDA(d_y);
             ELLMatrix_free_wpm(ellMatrix);
         } else {
-            SpMVResultCPU cpuResult;
-            SpMVResultCUDA gpuResult;
             ELLMatrix *ellLower = ELLMatrix_new_fromCOO_wpm(lower);
             if (!ellLower) {
                 perror("ELLMatrix_new()");
                 exit(EXIT_FAILURE);
             }
-            COOMatrix_SpMV_CPU(cooMatrix, X, Z, &cpuResult);
-            ELLMatrix_transpose(ellLower);
-            ELLMatrixHyb_SpMV_GPU_wpm(ellLower, higher, X, Z, &gpuResult);
-            int successGPU = Vector_equals(Y, Z);
-            fprintf(out, "{\n");
-            fprintf(out, "\"matrix\": \"%s\",\n", entry->d_name);
-            fprintf(out, "\"successGPU\": %s,\n", (successGPU) ? "true" : "false");
-            fprintf(out, "\"split\": %s,\n", "true");
-            fprintf(out, "\"MatrixInfo\": ");
-            COOMatrix_infoOutAsJSON(cooMatrix, out);
-            fprintf(out, ",\n");
-            fprintf(out, "\"CPUresult\": ");
-            SpMVResultCPU_outAsJSON(&cpuResult, out);
-            fprintf(out, ",\n");
-            fprintf(out, "\"GPUresult\": ");
-            SpMVResultCUDA_outAsJSON(&gpuResult, out);
-            fprintf(out, "\n},\n");
+            ELLMatrix *d_ellMatrix = ELLMatrix_to_CUDA(ellLower);
+            for (int i = 0; i < MAX_ITERATION; i++) {
+                ELLCOOMatrix_SpMV_CUDA(ellLower, higher, X, Y, &gpuResult);
+                if (i != MAX_ITERATION - 1) {
+                    Vector_free_wpm(X);
+                    X = Y;
+                    Y = Vector_new_wpm(cooMatrix->row_size);
+                }
+            }
+            ELLMatrix_free_CUDA(d_ellMatrix);
             ELLMatrix_free_wpm(ellLower);
         }
-        Vector_free_wpm(X);
+        fprintf(out, "{\n");
+        fprintf(out, "\"matrix\": \"%s\",\n", entry->d_name);
+        fprintf(out, "\"split\": %s,\n", (noSplit) ? "true" : "false");
+        fprintf(out, "\"MatrixInfo\": ");
+        COOMatrix_infoOutAsJSON(cooMatrix, out);
+        fprintf(out, ",\n");
+        fprintf(out, "\"GPUresult\": ");
+        SpMVResultCUDA_outAsJSON(&gpuResult, out);
+        fprintf(out, "\n},\n");
         Vector_free_wpm(Y);
-        Vector_free(Z);
+        Vector_free_wpm(X);
         COOMatrix_free(lower);
         COOMatrix_free_wpm(higher);
         COOMatrix_free(cooMatrix);
