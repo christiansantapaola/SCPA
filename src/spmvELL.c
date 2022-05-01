@@ -14,6 +14,7 @@
 #define MATRIX_SPLIT_THRESHOLD 32
 #define MAX_ITERATION 512
 
+
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         fprintf(stderr, "USAGE: %s dir [output.json]\n", PROGRAM_NAME);
@@ -59,14 +60,14 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "MTXParser_parser(%p) failed\n", mtxParser);
             exit(EXIT_FAILURE);
         }
-        Vector *X = Vector_new_wpm(cooMatrix->row_size);
+        Vector *X = Vector_new_wpm(cooMatrix->col_size);
         if (!X) {
             fprintf(stderr, "Vector_new_wpm(%lu)", cooMatrix->row_size);
             perror("");
             exit(EXIT_FAILURE);
         }
         Vector_set(X, 1.0f);
-        Vector *Y = Vector_new_wpm(cooMatrix->col_size);
+        Vector *Y = Vector_new_wpm(cooMatrix->row_size);
         if (!Y) {
             fprintf(stderr, "Vector_new_wpm(%lu)", cooMatrix->col_size);
             perror("");
