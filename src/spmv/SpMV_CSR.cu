@@ -41,40 +41,33 @@ SpMV_CSR_kernel(u_int64_t num_rows, const float *data, const u_int64_t *col_inde
     }
 }
 
-extern "C"
-int CSRMatrix_SpMV_CUDA(const CSRMatrix *d_matrix, const Vector *d_x, Vector *d_y, SpMVResultCUDA *result) {
-    cudaEvent_t start, stop;
-    size_t memoryUsed;
-    if (!d_matrix || !d_x || !d_y) {
-        return SPMV_FAIL;
-    }
-    if (d_x->size != d_matrix->col_size && d_y->size != d_matrix->row_size) {
-        return SPMV_FAIL;
-    }
-    memoryUsed = (d_matrix->num_non_zero_elements + d_x->size + d_y->size) * sizeof(float) + sizeof(u_int64_t) * (d_matrix->row_size + 1 + d_matrix->num_non_zero_elements);
-    int bestDev = CudaUtils_getBestDevice(memoryUsed);
-    if (bestDev == -1) {
-        return SPMV_FAIL;
-    }
-    CudaUtils_setDevice(bestDev);
+extern "C" int CSRMatrix_SpMV_CUDA(int cudaDevice, const CSRMatrix *d_matrix, const Vector *h_x, Vector *h_y) {
+    //cudaEvent_t start, stop;
+    Vector *d_x, *d_y;
     cudaDeviceProp prop;
     BlockGridInfo blockGridInfo;
-    CudaUtils_getDeviceProp(bestDev, &prop);
+    if (!d_matrix || !h_x || !h_y) {
+        return SPMV_FAIL;
+    }
+    if (h_x->size != d_matrix->col_size && h_y->size != d_matrix->row_size) {
+        return SPMV_FAIL;
+    }
+    CudaUtils_getDeviceProp(cudaDevice, &prop);
     CudaUtils_getBestCudaParameters(d_matrix->row_size, &prop, &blockGridInfo);
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
-    cudaEventRecord(start);
+    //cudaEventCreate(&start);
+    //cudaEventCreate(&stop);
+    d_x = Vector_to_CUDA(h_x);
+    d_y = Vector_to_CUDA(h_y);
+    //cudaEventRecord(start);
     SpMV_CSR_kernel<<<blockGridInfo.gridSize, blockGridInfo.blockSize>>>(d_matrix->row_size,
                                                                          d_matrix->data,
                                                                          d_matrix->col_index,
                                                                          d_matrix->row_pointer,
                                                                          d_x->data,
                                                                          d_y->data);
-    cudaEventRecord(stop);
-
-    if (result) {
-        cudaEventSynchronize(stop);
-        cudaEventElapsedTime(&result->GPUKernelExecutionTime, start, stop);
-    }
+    //cudaEventRecord(stop);
+    Vector_copy_from_CUDA(h_y, d_y);
+    Vector_free_CUDA(d_y);
+    Vector_free_CUDA(d_x);
     return SPMV_SUCCESS;
 }

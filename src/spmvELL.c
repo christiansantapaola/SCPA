@@ -6,14 +6,32 @@
 #include "MTXParser.h"
 #include "COOMatrix.h"
 #include "Vector.h"
-#include "ELLMatrix.h"
+#include "CSRMatrix.h"
 #include "SpMV.h"
 #include "util.h"
+#include "cudaUtils.h"
 
-#define PROGRAM_NAME "spmvELL"
-#define MATRIX_SPLIT_THRESHOLD 32
+#define PROGRAM_NAME "spmvCSR"
 #define MAX_ITERATION 512
 
+void outAsJSON(char *absolutePath, CSRMatrix *csrMatrix, SpMVResultCUDA *gpuResult,int isFirst, int isLast, FILE *out) {
+    if (isFirst) {
+        fprintf(out, "{ \"CSRResult\": [\n");
+    }
+    fprintf(out, "{\n");
+    fprintf(out, "\"matrix\": \"%s\",\n", absolutePath);
+    fprintf(out, "\"MatrixInfo\": ");
+    CSRMatrix_infoOutAsJSON(csrMatrix, out);
+    fprintf(out, ",\n");
+    fprintf(out, "\"GPUresult\": ");
+    SpMVResultCUDA_outAsJSON(gpuResult, out);
+    if (!isLast) {
+        fprintf(out, "\n},\n");
+    } else {
+        fprintf(out, "n}\n]}\n");
+    }
+
+}
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -34,115 +52,75 @@ int main(int argc, char *argv[]) {
         closedir(dir);
         return EXIT_FAILURE;
     }
-    fprintf(out, "{ \"ELLResult\": [\n");
-    char absolutePath[PATH_MAX + 1];
+    char absolutePath [PATH_MAX+1];
     chdir(argv[1]);
     int fileProcessed = 0;
     while ((entry = readdir(dir)) != NULL) {
+        // if file is not a regular file then skip.
         if (entry->d_type != DT_REG) {
             continue;
         }
+        // update status bar
         print_status_bar(fileProcessed, numDir, entry->d_name);
         fileProcessed++;
+        // get the fullpath of the current file.
         memset(absolutePath, 0, PATH_MAX + 1);
         char *ptr = realpath(entry->d_name, absolutePath);
         if (!ptr) {
             perror(entry->d_name);
             exit(EXIT_FAILURE);
         }
-        MTXParser *mtxParser = MTXParser_new(entry->d_name);
-        if (!mtxParser) {
-            fprintf(stderr, "MTXParser_new(%p) failed\n", entry->d_name);
+        COOMatrix *h_cooMatrix = read_matrix_from_file(ptr);
+        Vector *h_x = Vector_new_wpm(h_cooMatrix->row_size);
+        if (!h_x) {
+            fprintf(stderr, "Vector_new_wpm(%lu)", h_cooMatrix->row_size);
+            perror(" ");
             exit(EXIT_FAILURE);
         }
-        COOMatrix *cooMatrix = MTXParser_parse(mtxParser);
-        if (!cooMatrix) {
-            fprintf(stderr, "MTXParser_parser(%p) failed\n", mtxParser);
+        Vector_set(h_x, 1.0f);
+        Vector *h_y = Vector_new_wpm(h_cooMatrix->col_size);
+        if (!h_y) {
+            fprintf(stderr, "Vector_new_wpm(%lu)", h_cooMatrix->row_size);
+            perror(" ");
             exit(EXIT_FAILURE);
         }
-        Vector *X = Vector_new_wpm(cooMatrix->col_size);
-        if (!X) {
-            fprintf(stderr, "Vector_new_wpm(%lu)", cooMatrix->row_size);
-            perror("");
-            exit(EXIT_FAILURE);
-        }
-        Vector_set(X, 1.0f);
-        Vector *Y = Vector_new_wpm(cooMatrix->row_size);
-        if (!Y) {
-            fprintf(stderr, "Vector_new_wpm(%lu)", cooMatrix->col_size);
-            perror("");
-            exit(EXIT_FAILURE);
-        }
-        Vector_set(Y, 0.0f);
-        COOMatrix *lower, *higher;
-        lower = COOMatrix_new();
-        if (!lower) {
-            perror("COOMatrix_new()");
-            exit(EXIT_FAILURE);
-        }
-        higher = COOMatrix_new();
-        if (!higher) {
-            perror("COOMatrix_new()");
-            exit(EXIT_FAILURE);
-        }
-        int noSplit = COOMatrix_split_wpm(cooMatrix, lower, higher, MATRIX_SPLIT_THRESHOLD);
-        if (noSplit == -1) {
-            fprintf(stderr, "error in COOMatrix_split:\n");
-            exit(EXIT_FAILURE);
-        }
-        SpMVResultCUDA gpuResult;
-        if (noSplit) {
-            ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO_wpm(cooMatrix);
-            if (!ellMatrix) {
-                perror("ELLMatrix_new()");
-                exit(EXIT_FAILURE);
-            }
-            ELLMatrix *d_ellMatrix = ELLMatrix_to_CUDA(ellMatrix);
-            Vector *d_x = Vector_to_CUDA(X);
-            Vector *d_y = Vector_to_CUDA(Y);
-            SpMVResultCUDA tmp;
-            for (int i = 0; i < MAX_ITERATION; i++) {
-                ELLMatrix_SpMV_CUDA(d_ellMatrix, d_x, d_y, &tmp);
-                gpuResult.GPUKernelExecutionTime += tmp.GPUKernelExecutionTime;
-                gpuResult.CPUTime += tmp.CPUTime;
-            }
-            Vector_free_CUDA(d_x);
-            Vector_free_CUDA(d_y);
-            ELLMatrix_free_wpm(ellMatrix);
-        } else {
-            ELLMatrix *ellLower = ELLMatrix_new_fromCOO_wpm(lower);
-            if (!ellLower) {
-                perror("ELLMatrix_new()");
-                exit(EXIT_FAILURE);
-            }
-            ELLMatrix *d_ellMatrix = ELLMatrix_to_CUDA(ellLower);
-            SpMVResultCUDA tmp;
-            for (int i = 0; i < MAX_ITERATION; i++) {
-                ELLCOOMatrix_SpMV_CUDA(ellLower, higher, X, Y, &gpuResult);
-                gpuResult.GPUKernelExecutionTime += tmp.GPUKernelExecutionTime;
-                gpuResult.CPUTime += tmp.CPUTime;
+        Vector_set(h_y, 0.0f);
 
+        COOMatrix *h_low, *h_high;
+        int threshold = 64;
+        h_low = COOMatrix_new();
+        h_high = COOMatrix_new();
+        int notSplit = COOMatrix_split(h_cooMatrix, h_low, h_high, threshold);
+        if (notSplit == -1) {
+            return EXIT_FAILURE;
+        }
+        if (notSplit) {
+            ELLMatrix *h_ellMatrix = ELLMatrix_new_fromCOO(h_cooMatrix);
+            ELLMatrix *d_ellMatrix = ELLMatrix_to_CUDA(h_ellMatrix);
+            ELLMatrix_free(h_ellMatrix);
+            int cudaDev = CudaUtils_getBestDevice(d_ellMatrix->data_size * sizeof(float) + (h_x->size + h_y->size) * sizeof(float));
+            CudaUtils_setDevice(cudaDev);
+
+            for (u_int64_t i = 0; i < MAX_ITERATION; i++) {
+                ELLMatrix_SpMV_CUDA(cudaDev, d_ellMatrix, h_x, h_y);
             }
             ELLMatrix_free_CUDA(d_ellMatrix);
-            ELLMatrix_free_wpm(ellLower);
+        } else {
+            ELLMatrix *h_ellMatrix = ELLMatrix_new_fromCOO(h_low);
+            ELLMatrix *d_ellMatrix = ELLMatrix_to_CUDA(h_ellMatrix);
+            ELLMatrix_free(h_ellMatrix);
+            int cudaDev = CudaUtils_getBestDevice(d_ellMatrix->data_size * sizeof(float) + (h_x->size + h_y->size) * sizeof(float));
+            CudaUtils_setDevice(cudaDev);
+            for (u_int64_t i = 0; i < MAX_ITERATION; i++) {
+                ELLCOOMatrix_SpMV_CUDA(cudaDev, d_ellMatrix, h_high, h_x, h_y);
+            }
+            ELLMatrix_free_CUDA(d_ellMatrix);
         }
-        fprintf(out, "{\n");
-        fprintf(out, "\"matrix\": \"%s\",\n", entry->d_name);
-        fprintf(out, "\"split\": %s,\n", (noSplit) ? "true" : "false");
-        fprintf(out, "\"MatrixInfo\": ");
-        COOMatrix_infoOutAsJSON(cooMatrix, out);
-        fprintf(out, ",\n");
-        fprintf(out, "\"GPUresult\": ");
-        SpMVResultCUDA_outAsJSON(&gpuResult, out);
-        fprintf(out, "\n},\n");
-        Vector_free_wpm(Y);
-        Vector_free_wpm(X);
-        COOMatrix_free(lower);
-        COOMatrix_free_wpm(higher);
-        COOMatrix_free(cooMatrix);
-        MTXParser_free(mtxParser);
+        COOMatrix_free(h_low);
+        COOMatrix_free(h_high);
+        Vector_free_wpm(h_x);
+        Vector_free_wpm(h_y);
     }
-    fprintf(out, "{}\n]}\n");
     print_status_bar(numDir, numDir, "");
     fprintf(stderr, "\n");
     return EXIT_SUCCESS;

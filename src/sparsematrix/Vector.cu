@@ -40,6 +40,13 @@ Vector *Vector_from_CUDA(const Vector *d_vector) {
     return h_vector;
 }
 
+void Vector_copy_from_CUDA(Vector *h_vector, const Vector *d_vector) {
+    if (!h_vector || !d_vector) return;
+    if (h_vector == d_vector) return;
+    if (h_vector->size != d_vector->size) return;
+    checkCudaErrors(cudaMemcpy(h_vector->data, d_vector->data, d_vector->size * sizeof(float), cudaMemcpyDeviceToHost));
+}
+
 void Vector_free_CUDA(Vector *d_vector) {
     if (!d_vector) return;
     checkCudaErrors(cudaFree(d_vector->data));

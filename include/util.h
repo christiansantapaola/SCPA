@@ -9,7 +9,13 @@
 #include <stdlib.h>
 #include <dirent.h>
 
+#include "MTXParser.h"
+#include "COOMatrix.h"
+#include "CSRMatrix.h"
+
 void print_status_bar(int used, int total,char *file);
 int count_file_in_directory(const char *dirpath);
+COOMatrix *read_matrix_from_file(const char *path);
+CSRMatrix *read_csrMatrix_from_file(const char *path);
 
 #endif //SPARSEMATRIX_UTIL_H

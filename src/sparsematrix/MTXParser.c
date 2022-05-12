@@ -98,7 +98,7 @@ int parseHeader(char **token, u_int64_t numToken, u_int64_t *row, u_int64_t *col
  * @param path: path to the mtx file to parse
  * @return a new instance of the MTXParser struct allocated on the heap
  */
-MTXParser *MTXParser_new(char *path) {
+MTXParser *MTXParser_new(const char *path) {
     if (!path) return NULL;
     MTXParser *mtxParser = malloc(sizeof(*mtxParser));
     if (!mtxParser) {

@@ -21,37 +21,28 @@ __global__ void SpMV_ELL_kernel(u_int64_t num_rows, const float *data, const u_i
     }
 }
 
-int ELLMatrix_SpMV_CUDA(const ELLMatrix *matrix, const Vector *x, Vector *y, SpMVResultCUDA *result) {
-    cudaEvent_t start, stop;
-    size_t memoryUsed;
-    if (!matrix || !x || !y) {
-        return SPMV_FAIL;
-    }
-    if (x->size != matrix->col_size && y->size != matrix->row_size) {
-        return SPMV_FAIL;
-    }
-    if (result) {
-        memset(result, 0, sizeof(*result));
-    }
-    memoryUsed = (matrix->data_size + x->size + y->size) * sizeof(float) +   sizeof(u_int64_t) * (matrix->data_size);
-    int bestDev = CudaUtils_getBestDevice(memoryUsed);
-    if (bestDev == -1) {
-        return SPMV_FAIL;
-    }
-    CudaUtils_setDevice(bestDev);
+int ELLMatrix_SpMV_CUDA(int cudaDevice, const ELLMatrix *d_matrix, const Vector *h_x, Vector *h_y) {
+    //cudaEvent_t start, stop;
+    Vector *d_x, *d_y;
     cudaDeviceProp prop;
     BlockGridInfo blockGridInfo;
-    CudaUtils_getDeviceProp(bestDev, &prop);
-    CudaUtils_getBestCudaParameters(matrix->row_size, &prop, &blockGridInfo);
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
-
-    cudaEventRecord(start);
-    SpMV_ELL_kernel<<<blockGridInfo.gridSize, blockGridInfo.blockSize>>>(matrix->row_size, matrix->data, matrix->col_index, matrix->num_elem, x->data, y->data);
-    cudaEventRecord(stop);
-    if (result) {
-        cudaEventSynchronize(stop);
-        cudaEventElapsedTime(&result->GPUKernelExecutionTime, start, stop);
+    if (!d_matrix || !h_x || !h_y) {
+        return SPMV_FAIL;
     }
+    if (h_x->size != d_matrix->col_size && h_y->size != d_matrix->row_size) {
+        return SPMV_FAIL;
+    }
+    CudaUtils_getDeviceProp(cudaDevice, &prop);
+    CudaUtils_getBestCudaParameters(d_matrix->row_size, &prop, &blockGridInfo);
+    //cudaEventCreate(&start);
+    //cudaEventCreate(&stop);
+    d_x = Vector_to_CUDA(h_x);
+    d_y = Vector_to_CUDA(h_y);
+    //cudaEventRecord(start);
+    SpMV_ELL_kernel<<<blockGridInfo.gridSize, blockGridInfo.blockSize>>>(d_matrix->row_size, d_matrix->data, d_matrix->col_index, d_matrix->num_elem, d_x->data, d_y->data);
+    //cudaEventRecord(stop);
+    Vector_copy_from_CUDA(h_y, d_y);
+    Vector_free_CUDA(d_y);
+    Vector_free_CUDA(d_x);
     return SPMV_SUCCESS;
 }

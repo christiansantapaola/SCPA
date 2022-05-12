@@ -1,4 +1,5 @@
 #include "util.h"
+#include "ELLMatrix.h"
 
 void print_status_bar(int used, int total,char *file) {
     fprintf(stderr, "\33[2K\r[");
@@ -23,4 +24,23 @@ int count_file_in_directory(const char *dirpath) {
     }
     closedir(dir);
     return count;
+}
+
+COOMatrix *read_matrix_from_file(const char *path) {
+    if (!path) return NULL;
+    MTXParser *mtxParser = MTXParser_new(path);
+    if (!mtxParser) {
+        return NULL;
+    }
+    COOMatrix *cooMatrix = MTXParser_parse(mtxParser);
+    MTXParser_free(mtxParser);
+    return cooMatrix;
+}
+
+CSRMatrix *read_csrMatrix_from_file(const char *path) {
+    COOMatrix *cooMatrix = read_matrix_from_file(path);
+    if (!cooMatrix) return NULL;
+    CSRMatrix *csrMatrix = CSRMatrix_new(cooMatrix);
+    COOMatrix_free(cooMatrix);
+    return csrMatrix;
 }

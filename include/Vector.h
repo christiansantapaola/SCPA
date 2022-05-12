@@ -20,6 +20,7 @@ void Vector_free_wpm(Vector *vector);
 
 Vector *Vector_to_CUDA(const Vector *h_vector);
 Vector *Vector_from_CUDA(const Vector *d_vector);
+void Vector_copy_from_CUDA(Vector *h_vector, const Vector *d_vector);
 void Vector_free_CUDA(Vector *d_vector);
 
 void Vector_set(Vector *vector, float value);

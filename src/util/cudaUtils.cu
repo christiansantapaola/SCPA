@@ -1,14 +1,17 @@
 #include "cudaUtils.cuh"
 
-
+extern "C"
 void CudaUtils_setDevice(int device) {
     checkCudaErrors(cudaSetDevice(device));
 }
+
 void CudaUtils_getDeviceProp(int device, cudaDeviceProp *prop) {
     if (!prop) return;
     checkCudaErrors(cudaGetDeviceProperties(prop, device));
 
 }
+
+extern "C"
 int CudaUtils_getBestDevice(size_t memoryUsed) {
     int numDevices;
     cudaDeviceProp *props;
@@ -38,11 +41,6 @@ int CudaUtils_getBestDevice(size_t memoryUsed) {
     }
     free(props);
     return bestDev;
-}
-
-int doesItFitInGlobalMemory(cudaDeviceProp *prop, size_t size) {
-    if (!prop) return 0;
-    return size <= prop->totalGlobalMem;
 }
 
 void CudaUtils_getBestCudaParameters(u_int64_t numUnits, cudaDeviceProp *prop, BlockGridInfo *bestParams) {
