@@ -65,12 +65,12 @@ extern "C" int CSRMatrix_SpMV_CUDA(int cudaDevice, const CSRMatrix *d_matrix, co
                                                                          d_matrix->row_pointer,
                                                                          d_x->data,
                                                                          d_y->data);
+    Vector_copy_from_CUDA(h_y, d_y);
     cudaEventRecord(stop);
     if (time) {
         cudaEventSynchronize(stop);
         cudaEventElapsedTime(time, start, stop);
     }
-    Vector_copy_from_CUDA(h_y, d_y);
     Vector_free_CUDA(d_y);
     Vector_free_CUDA(d_x);
     return SPMV_SUCCESS;

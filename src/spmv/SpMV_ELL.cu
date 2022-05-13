@@ -40,12 +40,12 @@ int ELLMatrix_SpMV_CUDA(int cudaDevice, const ELLMatrix *d_matrix, const Vector 
     d_y = Vector_to_CUDA(h_y);
     cudaEventRecord(start);
     SpMV_ELL_kernel<<<blockGridInfo.gridSize, blockGridInfo.blockSize>>>(d_matrix->row_size, d_matrix->data, d_matrix->col_index, d_matrix->num_elem, d_x->data, d_y->data);
+    Vector_copy_from_CUDA(h_y, d_y);
     cudaEventRecord(stop);
     if (time) {
         cudaEventSynchronize(stop);
         cudaEventElapsedTime(time, start, stop);
     }
-    Vector_copy_from_CUDA(h_y, d_y);
     Vector_free_CUDA(d_y);
     Vector_free_CUDA(d_x);
     return SPMV_SUCCESS;
