@@ -24,11 +24,11 @@ void outAsJSON(char *absolutePath, COOMatrix *matrix, float time, int numIterati
     COOMatrix_infoOutAsJSON(matrix, out);
     fprintf(out, ",\n");
     fprintf(out, "\"time\": %f,\n", time);
-    fprintf(out, "\"meanTime\": %f,\n", time / (float)numIteration);
+    fprintf(out, "\"meanTime\": %f\n", time / (float)numIteration);
     if (!isLast) {
-        fprintf(out, "\n},\n");
+        fprintf(out, "},\n");
     } else {
-        fprintf(out, "\n}\n]}\n");
+        fprintf(out, "}\n]}\n");
     }
 }
 
