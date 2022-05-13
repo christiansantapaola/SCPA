@@ -58,6 +58,20 @@ add_executable(readELL
 )
 target_link_libraries(readELL OpenMP::OpenMP_C)
 
+add_executable(spmvCOO
+        src/spmvCOO.c
+        src/sparsematrix/COOMatrix.c
+        src/sparsematrix/CSRMatrix.c
+        src/sparsematrix/ELLMatrix.c
+        src/sparsematrix/Vector.c
+        src/sparsematrix/MTXParser.c
+        lib/mmio/src/mmio.c
+        src/util/Histogram.c
+        src/spmv/SpMV.c
+        src/util/util.c)
+
+target_link_libraries(spmvCOO ${CUDA_LIBRARIES} OpenMP::OpenMP_C)
+
 
 add_executable(spmvCSR
         src/spmvCSR.c

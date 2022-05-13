@@ -13,24 +13,24 @@
 
 #define PROGRAM_NAME "spmvCSR"
 #define MAX_ITERATION 512
+#define THRESHOLD 16
 
-void outAsJSON(char *absolutePath, CSRMatrix *csrMatrix, SpMVResultCUDA *gpuResult,int isFirst, int isLast, FILE *out) {
+void outAsJSON(char *absolutePath, COOMatrix *matrix, float time, int numIteration, int isFirst, int isLast, FILE *out) {
     if (isFirst) {
         fprintf(out, "{ \"CSRResult\": [\n");
     }
     fprintf(out, "{\n");
     fprintf(out, "\"matrix\": \"%s\",\n", absolutePath);
     fprintf(out, "\"MatrixInfo\": ");
-    CSRMatrix_infoOutAsJSON(csrMatrix, out);
+    COOMatrix_infoOutAsJSON(matrix, out);
     fprintf(out, ",\n");
-    fprintf(out, "\"GPUresult\": ");
-    SpMVResultCUDA_outAsJSON(gpuResult, out);
+    fprintf(out, "\"time\": %f,\n", time);
+    fprintf(out, "\"meanTime\": %f\n", time / (float)numIteration);
     if (!isLast) {
-        fprintf(out, "\n},\n");
+        fprintf(out, "},\n");
     } else {
-        fprintf(out, "n}\n]}\n");
+        fprintf(out, "}\n]}\n");
     }
-
 }
 
 int main(int argc, char *argv[]) {
@@ -87,22 +87,23 @@ int main(int argc, char *argv[]) {
         Vector_set(h_y, 0.0f);
 
         COOMatrix *h_low, *h_high;
-        int threshold = 64;
         h_low = COOMatrix_new();
         h_high = COOMatrix_new();
-        int notSplit = COOMatrix_split(h_cooMatrix, h_low, h_high, threshold);
+        int notSplit = COOMatrix_split(h_cooMatrix, h_low, h_high, THRESHOLD);
         if (notSplit == -1) {
             return EXIT_FAILURE;
         }
+        float totTime = 0.0f;
         if (notSplit) {
             ELLMatrix *h_ellMatrix = ELLMatrix_new_fromCOO(h_cooMatrix);
             ELLMatrix *d_ellMatrix = ELLMatrix_to_CUDA(h_ellMatrix);
             ELLMatrix_free(h_ellMatrix);
             int cudaDev = CudaUtils_getBestDevice(d_ellMatrix->data_size * sizeof(float) + (h_x->size + h_y->size) * sizeof(float));
             CudaUtils_setDevice(cudaDev);
-
             for (u_int64_t i = 0; i < MAX_ITERATION; i++) {
-                ELLMatrix_SpMV_CUDA(cudaDev, d_ellMatrix, h_x, h_y);
+                float time;
+                ELLMatrix_SpMV_CUDA(cudaDev, d_ellMatrix, h_x, h_y, &time);
+                totTime += time;
             }
             ELLMatrix_free_CUDA(d_ellMatrix);
         } else {
@@ -112,10 +113,14 @@ int main(int argc, char *argv[]) {
             int cudaDev = CudaUtils_getBestDevice(d_ellMatrix->data_size * sizeof(float) + (h_x->size + h_y->size) * sizeof(float));
             CudaUtils_setDevice(cudaDev);
             for (u_int64_t i = 0; i < MAX_ITERATION; i++) {
-                ELLCOOMatrix_SpMV_CUDA(cudaDev, d_ellMatrix, h_high, h_x, h_y);
+                float time;
+                ELLCOOMatrix_SpMV_CUDA(cudaDev, d_ellMatrix, h_high, h_x, h_y, &time);
+                totTime += time;
             }
             ELLMatrix_free_CUDA(d_ellMatrix);
         }
+        outAsJSON(absolutePath, h_cooMatrix, totTime, MAX_ITERATION, fileProcessed == 1, fileProcessed == numDir, out);
+        COOMatrix_free(h_cooMatrix);
         COOMatrix_free(h_low);
         COOMatrix_free(h_high);
         Vector_free_wpm(h_x);

@@ -14,14 +14,14 @@
 #define PROGRAM_NAME "spmvCSR"
 #define MAX_ITERATION 512
 
-void outAsJSON(char *absolutePath, CSRMatrix *matrix, float time, int numIteration, int isFirst, int isLast, FILE *out) {
+void outAsJSON(char *absolutePath, COOMatrix *matrix, float time, int numIteration, int isFirst, int isLast, FILE *out) {
     if (isFirst) {
         fprintf(out, "{ \"CSRResult\": [\n");
     }
     fprintf(out, "{\n");
     fprintf(out, "\"matrix\": \"%s\",\n", absolutePath);
     fprintf(out, "\"MatrixInfo\": ");
-    CSRMatrix_infoOutAsJSON(matrix, out);
+    COOMatrix_infoOutAsJSON(matrix, out);
     fprintf(out, ",\n");
     fprintf(out, "\"time\": %f,\n", time);
     fprintf(out, "\"meanTime\": %f,\n", time / (float)numIteration);
@@ -69,35 +69,31 @@ int main(int argc, char *argv[]) {
             perror(entry->d_name);
             exit(EXIT_FAILURE);
         }
-        CSRMatrix *h_csrMatrix = read_csrMatrix_from_file(ptr);
-        Vector *h_x = Vector_new_wpm(h_csrMatrix->row_size);
+        COOMatrix *matrix = read_matrix_from_file(ptr);
+        Vector *h_x = Vector_new(matrix->row_size);
         if (!h_x) {
-            fprintf(stderr, "Vector_new_wpm(%lu)", h_csrMatrix->row_size);
+            fprintf(stderr, "Vector_new_wpm(%lu)", matrix->row_size);
             perror(" ");
             exit(EXIT_FAILURE);
         }
         Vector_set(h_x, 1.0f);
-        Vector *h_y = Vector_new_wpm(h_csrMatrix->col_size);
+        Vector *h_y = Vector_new(matrix->col_size);
         if (!h_y) {
-            fprintf(stderr, "Vector_new_wpm(%lu)", h_csrMatrix->row_size);
+            fprintf(stderr, "Vector_new_wpm(%lu)", matrix->row_size);
             perror(" ");
             exit(EXIT_FAILURE);
         }
         Vector_set(h_y, 0.0f);
-        int cudaDev = CudaUtils_getBestDevice(h_csrMatrix->num_non_zero_elements * sizeof(float) + (h_x->size + h_y->size) * sizeof(float));
-        CudaUtils_setDevice(cudaDev);
-        CSRMatrix *d_csrMatrix = CSRMatrix_to_CUDA(h_csrMatrix);
-        CSRMatrix_free(h_csrMatrix);
         float totTime = 0.0f;
         for (u_int64_t i = 0; i < MAX_ITERATION; i++) {
             float time;
-            CSRMatrix_SpMV_CUDA(cudaDev, d_csrMatrix, h_x, h_y, &time);
+            COOMatrix_SpMV(matrix, h_x, h_y, &time);
             totTime += time;
         }
-        outAsJSON(absolutePath, d_csrMatrix, totTime, MAX_ITERATION, fileProcessed == 1, fileProcessed == numDir, out);
-        CSRMatrix_free_CUDA(d_csrMatrix);
-        Vector_free_wpm(h_x);
-        Vector_free_wpm(h_y);
+        outAsJSON(absolutePath, matrix, totTime, MAX_ITERATION, fileProcessed == 1, fileProcessed == numDir, out);
+        COOMatrix_free(matrix);
+        Vector_free(h_x);
+        Vector_free(h_y);
     }
     print_status_bar(numDir, numDir, "");
     fprintf(stderr, "\n");

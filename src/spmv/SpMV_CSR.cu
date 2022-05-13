@@ -41,8 +41,8 @@ SpMV_CSR_kernel(u_int64_t num_rows, const float *data, const u_int64_t *col_inde
     }
 }
 
-extern "C" int CSRMatrix_SpMV_CUDA(int cudaDevice, const CSRMatrix *d_matrix, const Vector *h_x, Vector *h_y) {
-    //cudaEvent_t start, stop;
+extern "C" int CSRMatrix_SpMV_CUDA(int cudaDevice, const CSRMatrix *d_matrix, const Vector *h_x, Vector *h_y, float *time) {
+    cudaEvent_t start, stop;
     Vector *d_x, *d_y;
     cudaDeviceProp prop;
     BlockGridInfo blockGridInfo;
@@ -54,18 +54,22 @@ extern "C" int CSRMatrix_SpMV_CUDA(int cudaDevice, const CSRMatrix *d_matrix, co
     }
     CudaUtils_getDeviceProp(cudaDevice, &prop);
     CudaUtils_getBestCudaParameters(d_matrix->row_size, &prop, &blockGridInfo);
-    //cudaEventCreate(&start);
-    //cudaEventCreate(&stop);
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
     d_x = Vector_to_CUDA(h_x);
     d_y = Vector_to_CUDA(h_y);
-    //cudaEventRecord(start);
+    cudaEventRecord(start);
     SpMV_CSR_kernel<<<blockGridInfo.gridSize, blockGridInfo.blockSize>>>(d_matrix->row_size,
                                                                          d_matrix->data,
                                                                          d_matrix->col_index,
                                                                          d_matrix->row_pointer,
                                                                          d_x->data,
                                                                          d_y->data);
-    //cudaEventRecord(stop);
+    cudaEventRecord(stop);
+    if (time) {
+        cudaEventSynchronize(stop);
+        cudaEventElapsedTime(time, start, stop);
+    }
     Vector_copy_from_CUDA(h_y, d_y);
     Vector_free_CUDA(d_y);
     Vector_free_CUDA(d_x);

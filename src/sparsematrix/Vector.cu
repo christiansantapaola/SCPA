@@ -26,6 +26,14 @@ Vector *Vector_to_CUDA(const Vector *h_vector) {
     return d_vector;
 }
 
+Vector *Vector_to_CUDA_async(const Vector *h_vector) {
+    Vector *d_vector = (Vector *) malloc(sizeof(Vector));
+    d_vector->size = h_vector->size;
+    checkCudaErrors(cudaMalloc(&d_vector->data, h_vector->size * sizeof(float)));
+    checkCudaErrors(cudaMemcpyAsync(d_vector->data, h_vector->data, d_vector->size * sizeof(float), cudaMemcpyHostToDevice));
+    return d_vector;
+}
+
 Vector *Vector_from_CUDA(const Vector *d_vector) {
     if (!d_vector) return NULL;
     Vector *h_vector = (Vector *) malloc(sizeof(Vector));
