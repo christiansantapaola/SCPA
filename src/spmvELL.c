@@ -11,7 +11,7 @@
 #include "util.h"
 #include "cudaUtils.h"
 
-#define PROGRAM_NAME "spmvCSR"
+#define PROGRAM_NAME "spmvELL"
 #define MAX_ITERATION 512
 #define ELL_THRESHOLD 256
 
