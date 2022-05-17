@@ -26,7 +26,7 @@ void outAsJSON(char *absolutePath, COOMatrix *matrix, u_int64_t nz, float time, 
     fprintf(out, ",\n");
     fprintf(out, "\"time\": %f,\n", time);
     fprintf(out, "\"meanTime\": %f\n", time / (float)numIteration);
-    fprintf(out, "\"FLOPS\": %f\n", compute_FLOPS(nz, time));
+    fprintf(out, "\"FLOPS\": %f\n", compute_FLOPS(nz, time / 1000.0));
     if (!isLast) {
         fprintf(out, "},\n");
     } else {
