@@ -14,7 +14,7 @@
 #define PROGRAM_NAME "spmvCSR"
 #define MAX_ITERATION 512
 
-void outAsJSON(char *absolutePath, CSRMatrix *matrix, float time, int numIteration, int isFirst, int isLast, FILE *out) {
+void outAsJSON(char *absolutePath, CSRMatrix *matrix, u_int64_t nz, float time, int numIteration, int isFirst, int isLast, FILE *out) {
     if (isFirst) {
         fprintf(out, "{ \"CSRResult\": [\n");
     }
@@ -24,7 +24,8 @@ void outAsJSON(char *absolutePath, CSRMatrix *matrix, float time, int numIterati
     CSRMatrix_infoOutAsJSON(matrix, out);
     fprintf(out, ",\n");
     fprintf(out, "\"time\": %f,\n", time);
-    fprintf(out, "\"meanTime\": %f\n", time / (float)numIteration);
+    fprintf(out, "\"meanTime\": %f,\n", time / (float)numIteration);
+    fprintf(out, "\"FLOPS\": %f\n", compute_FLOPS(nz, time));
     if (!isLast) {
         fprintf(out, "},\n");
     } else {
@@ -94,7 +95,7 @@ int main(int argc, char *argv[]) {
             CSRMatrix_SpMV_CUDA(cudaDev, d_csrMatrix, h_x, h_y, &time);
             totTime += time;
         }
-        outAsJSON(absolutePath, d_csrMatrix, totTime, MAX_ITERATION, fileProcessed == 1, fileProcessed == numDir, out);
+        outAsJSON(absolutePath, d_csrMatrix,d_csrMatrix->num_non_zero_elements, totTime, MAX_ITERATION, fileProcessed == 1, fileProcessed == numDir, out);
         CSRMatrix_free_CUDA(d_csrMatrix);
         Vector_free_wpm(h_x);
         Vector_free_wpm(h_y);

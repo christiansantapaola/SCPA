@@ -44,3 +44,7 @@ CSRMatrix *read_csrMatrix_from_file(const char *path) {
     COOMatrix_free(cooMatrix);
     return csrMatrix;
 }
+
+double compute_FLOPS(u_int64_t nz, float time) {
+    return 2.0 * (double) nz / time;
+}

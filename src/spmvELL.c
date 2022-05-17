@@ -15,7 +15,7 @@
 #define MAX_ITERATION 512
 #define THRESHOLD 16
 
-void outAsJSON(char *absolutePath, COOMatrix *matrix, float time, int numIteration, int isFirst, int isLast, FILE *out) {
+void outAsJSON(char *absolutePath, COOMatrix *matrix, u_int64_t nz, float time, int numIteration, int isFirst, int isLast, FILE *out) {
     if (isFirst) {
         fprintf(out, "{ \"CSRResult\": [\n");
     }
@@ -26,6 +26,7 @@ void outAsJSON(char *absolutePath, COOMatrix *matrix, float time, int numIterati
     fprintf(out, ",\n");
     fprintf(out, "\"time\": %f,\n", time);
     fprintf(out, "\"meanTime\": %f\n", time / (float)numIteration);
+    fprintf(out, "\"FLOPS\": %f\n", compute_FLOPS(nz, time));
     if (!isLast) {
         fprintf(out, "},\n");
     } else {
@@ -119,7 +120,7 @@ int main(int argc, char *argv[]) {
             }
             ELLMatrix_free_CUDA(d_ellMatrix);
         }
-        outAsJSON(absolutePath, h_cooMatrix, totTime, MAX_ITERATION, fileProcessed == 1, fileProcessed == numDir, out);
+        outAsJSON(absolutePath, h_cooMatrix,h_cooMatrix->num_non_zero_elements, totTime, MAX_ITERATION, fileProcessed == 1, fileProcessed == numDir, out);
         COOMatrix_free(h_cooMatrix);
         COOMatrix_free(h_low);
         COOMatrix_free(h_high);

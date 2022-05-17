@@ -17,5 +17,5 @@ void print_status_bar(int used, int total,char *file);
 int count_file_in_directory(const char *dirpath);
 COOMatrix *read_matrix_from_file(const char *path);
 CSRMatrix *read_csrMatrix_from_file(const char *path);
-
+double compute_FLOPS(u_int64_t nz, float time);
 #endif //SPARSEMATRIX_UTIL_H
