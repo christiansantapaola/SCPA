@@ -13,7 +13,7 @@
 
 #define PROGRAM_NAME "spmvCSR"
 #define MAX_ITERATION 512
-#define THRESHOLD 16
+#define ELL_THRESHOLD 256
 
 void outAsJSON(char *absolutePath, COOMatrix *matrix, u_int64_t nz, float time, int numIteration, int isFirst, int isLast, FILE *out) {
     if (isFirst) {
@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
         COOMatrix *h_low, *h_high;
         h_low = COOMatrix_new();
         h_high = COOMatrix_new();
-        int notSplit = COOMatrix_split(h_cooMatrix, h_low, h_high, THRESHOLD);
+        int notSplit = COOMatrix_split(h_cooMatrix, h_low, h_high, ELL_THRESHOLD);
         if (notSplit == -1) {
             return EXIT_FAILURE;
         }
