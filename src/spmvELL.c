@@ -17,7 +17,7 @@
 
 void outAsJSON(char *absolutePath, COOMatrix *matrix, u_int64_t nz, float time, int numIteration, int isFirst, int isLast, FILE *out) {
     if (isFirst) {
-        fprintf(out, "{ \"CSRResult\": [\n");
+        fprintf(out, "{ \"ELLResult\": [\n");
     }
     fprintf(out, "{\n");
     fprintf(out, "\"matrix\": \"%s\",\n", absolutePath);
