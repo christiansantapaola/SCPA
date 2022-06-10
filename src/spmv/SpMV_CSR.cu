@@ -10,23 +10,6 @@ extern "C" {
 
 #define MAX_X_SIZE 65536 / sizeof(float)
 
-/*
- * Calcolo Performance:
- * Accessi alla memoria globale:
- * int row = blockIdx.x * blockDim.x + threadIdx.x; + 1
- * int row_start = row_ptr[row];                    + 1
- * int row_end = row_ptr[row + 1];                  + 1
- * data[elem]                                       + 1
- * x[col_index[elem]]                               + 2
- * y[row]                                           + 1
- * Totale                                           + 7
- * Numero Operazioni Float:
- * dot += data[elem] * x[col_index[elem]];          + 2
- * y[row] += dot;                                   + 1
- * Totale                                           + 3
- * Ratio float/access = 7/3
- */
-
 __global__ void
 SpMV_CSR_kernel(u_int64_t num_rows, const float *data, const u_int64_t *col_index, const u_int64_t *row_ptr, const float *x, float *y) {
     u_int64_t row = blockIdx.x * blockDim.x + threadIdx.x;

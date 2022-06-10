@@ -48,3 +48,22 @@ CSRMatrix *read_csrMatrix_from_file(const char *path) {
 double compute_FLOPS(u_int64_t nz, float time) {
     return 2.0 * (double) nz / time;
 }
+
+double compute_mean(float *obs, unsigned int size) {
+    if (!obs || size == 0) return NAN;
+    double sum = 0.0;
+    for (unsigned int i = 0; i < size; i++) {
+        sum += obs[i];
+    }
+    return sum / (double) size;
+}
+
+double compute_var(float *obs, unsigned int size, double mean) {
+    if (!obs || size == 0 || size == 1) return NAN;
+    double square_sum = 0.0;
+    for (unsigned int i = 0; i < size; i++) {
+        double centered_obs = (obs[i] - mean);
+        square_sum +=  centered_obs * centered_obs;
+    }
+    return square_sum / (double) (size - 1);
+}

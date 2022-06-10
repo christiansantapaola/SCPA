@@ -18,4 +18,6 @@ int count_file_in_directory(const char *dirpath);
 COOMatrix *read_matrix_from_file(const char *path);
 CSRMatrix *read_csrMatrix_from_file(const char *path);
 double compute_FLOPS(u_int64_t nz, float time);
+double compute_mean(float *obs, unsigned int size);
+double compute_var(float *obs, unsigned int size, double mean);
 #endif //SPARSEMATRIX_UTIL_H

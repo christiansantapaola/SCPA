@@ -11,22 +11,20 @@
 #include "util.h"
 #include "cudaUtils.h"
 
-#define PROGRAM_NAME "spmvCSR"
+#define PROGRAM_NAME "spmvTest"
 #define MAX_ITERATION 512
 
-void outAsJSON(char *absolutePath, CSRMatrix *matrix, u_int64_t nz, float time, int numIteration, int isFirst, int isLast, FILE *out) {
+void outAsJSON(char *absolutePath, COOMatrix *matrix, int csrSuccess, int ellSuccess, int isFirst, int isLast, FILE *out) {
     if (isFirst) {
         fprintf(out, "{ \"CSRResult\": [\n");
     }
     fprintf(out, "{\n");
     fprintf(out, "\"matrix\": \"%s\",\n", absolutePath);
     fprintf(out, "\"MatrixInfo\": ");
-    CSRMatrix_infoOutAsJSON(matrix, out);
+    COOMatrix_infoOutAsJSON(matrix, out);
     fprintf(out, ",\n");
-    fprintf(out, "\"numIteration\": %d,\n", numIteration);
-    fprintf(out, "\"time\": %f,\n", time);
-    fprintf(out, "\"meanTime\": %f,\n", time / (float)numIteration);
-    fprintf(out, "\"FLOPS\": %f\n", compute_FLOPS(nz, (time / (float)numIteration) / 1000.0));
+    fprintf(out, "\"csrSuccess\": \"%s\",\n", (csrSuccess) ? "true" : "false");
+    fprintf(out, "\"ellSuccess\": \"%s\"\n", (ellSuccess) ? "true" : "false");
     if (!isLast) {
         fprintf(out, "},\n");
     } else {
@@ -71,36 +69,56 @@ int main(int argc, char *argv[]) {
             perror(entry->d_name);
             exit(EXIT_FAILURE);
         }
-        COOMatrix *h_cooMatrix = read_matrix_from_file(ptr);
-        CSRMatrix *h_csrMatrix = CSRMatrix_new(h_cooMatrix);
-        Vector *h_x = Vector_new_wpm(h_csrMatrix->row_size);
+        COOMatrix *matrix = read_matrix_from_file(ptr);
+        Vector *h_x = Vector_new(matrix->row_size);
         if (!h_x) {
-            fprintf(stderr, "Vector_new_wpm(%lu)", h_csrMatrix->row_size);
+            fprintf(stderr, "Vector_new_wpm(%lu)", matrix->row_size);
             perror(" ");
             exit(EXIT_FAILURE);
         }
         Vector_set(h_x, 1.0f);
-        Vector *h_y = Vector_new_wpm(h_csrMatrix->col_size);
+        Vector *h_y = Vector_new(matrix->col_size);
         if (!h_y) {
-            fprintf(stderr, "Vector_new_wpm(%lu)", h_csrMatrix->row_size);
+            fprintf(stderr, "Vector_new(%lu)", matrix->row_size);
             perror(" ");
             exit(EXIT_FAILURE);
         }
         Vector_set(h_y, 0.0f);
-        int cudaDev = CudaUtils_getBestDevice(h_csrMatrix->num_non_zero_elements * sizeof(float) + (h_x->size + h_y->size) * sizeof(float));
-        CudaUtils_setDevice(cudaDev);
-        CSRMatrix *d_csrMatrix = CSRMatrix_to_CUDA(h_csrMatrix);
-        float totTime = 0.0f;
-        for (u_int64_t i = 0; i < MAX_ITERATION; i++) {
-            float time;
-            CSRMatrix_SpMV_CUDA(cudaDev, d_csrMatrix, h_x, h_y, &time);
-            totTime += time;
+        Vector *h_y_csr = Vector_new_wpm(matrix->col_size);
+        if (!h_y_csr) {
+            fprintf(stderr, "Vector_new_wpm(%lu)", matrix->row_size);
+            perror(" ");
+            exit(EXIT_FAILURE);
         }
-        outAsJSON(absolutePath, d_csrMatrix,d_csrMatrix->num_non_zero_elements, totTime, MAX_ITERATION, fileProcessed == 1, fileProcessed == numDir, out);
-        CSRMatrix_free_CUDA(d_csrMatrix);
-        CSRMatrix_free(h_csrMatrix);
-        Vector_free_wpm(h_x);
-        Vector_free_wpm(h_y);
+        Vector_set(h_y_csr, 0.0f);
+
+        Vector *h_y_ell = Vector_new_wpm(matrix->col_size);
+        if (!h_y_ell) {
+            fprintf(stderr, "Vector_new_wpm(%lu)", matrix->row_size);
+            perror(" ");
+            exit(EXIT_FAILURE);
+        }
+        Vector_set(h_y_ell, 0.0f);
+
+        COOMatrix_SpMV(matrix, h_x, h_y, NULL);
+
+        CSRMatrix *h_csr = CSRMatrix_new(matrix);
+        CSRMatrix *d_csr = CSRMatrix_to_CUDA(h_csr);        
+        CSRMatrix_free(h_csr);
+        CSRMatrix_SpMV_CUDA(0, d_csr, h_x, h_y_csr, NULL);
+        CSRMatrix_free_CUDA(d_csr);
+
+        ELLCOOMatrix_SpMV(matrix, h_x, h_y_ell, 512, 1);
+        int success_csr = Vector_equals(h_y, h_y_csr);
+        int success_ell = Vector_equals(h_y, h_y_ell);
+
+        outAsJSON(absolutePath, matrix, success_csr, success_ell, fileProcessed == 1, fileProcessed == numDir, out);
+        COOMatrix_free(matrix);
+        Vector_free(h_x);
+        Vector_free(h_y);
+        Vector_free_wpm(h_y_csr);
+        Vector_free_wpm(h_y_ell);
+
     }
     print_status_bar(numDir, numDir, "");
     fprintf(stderr, "\n");

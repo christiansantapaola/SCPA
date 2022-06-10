@@ -58,19 +58,28 @@ add_executable(readELL
 )
 target_link_libraries(readELL OpenMP::OpenMP_C)
 
-add_executable(spmvCOO
-        src/spmvCOO.c
-        src/sparsematrix/COOMatrix.c
-        src/sparsematrix/CSRMatrix.c
+add_executable(spmvTest
+        src/spmvTest.c
         src/sparsematrix/ELLMatrix.c
+        src/sparsematrix/ELLMatrix.cu
+        src/sparsematrix/CSRMatrix.c
+        src/sparsematrix/CSRMatrix.cu
+        src/sparsematrix/COOMatrix.c
         src/sparsematrix/Vector.c
+        src/sparsematrix/Vector.cu
         src/sparsematrix/MTXParser.c
         lib/mmio/src/mmio.c
         src/util/Histogram.c
+        src/util/cudaUtils.cu
+        src/spmv/SpMV_CSR.cu
+        src/spmv/SpMV_ELLHYB.cu
+        src/spmv/SpMV_ELL.cu
+        src/spmv/SpMVResult.c
         src/spmv/SpMV.c
+        src/util/BlockGridInfo.c
         src/util/util.c)
 
-target_link_libraries(spmvCOO ${CUDA_LIBRARIES} OpenMP::OpenMP_C)
+target_link_libraries(spmvTest ${CUDA_LIBRARIES} OpenMP::OpenMP_C)
 
 
 add_executable(spmvCSR
@@ -87,6 +96,8 @@ add_executable(spmvCSR
         src/util/Histogram.c
         src/util/cudaUtils.cu
         src/spmv/SpMV_CSR.cu
+        src/spmv/SpMV_ELLHYB.cu
+        src/spmv/SpMV_ELL.cu
         src/spmv/SpMVResult.c
         src/spmv/SpMV.c
         src/util/BlockGridInfo.c

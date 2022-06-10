@@ -29,11 +29,11 @@ extern "C" int ELLCOOMatrix_SpMV_CUDA(int cudaDevice, const ELLMatrix *d_ellMatr
     Vector* d_y = Vector_to_CUDA(h_y);
     cudaEventRecord(start);
     SpMV_ELL_kernel<<<BlockGridInfo.gridSize, BlockGridInfo.blockSize>>>(d_ellMatrix->row_size, d_ellMatrix->data, d_ellMatrix->col_index, d_ellMatrix->num_elem, d_x->data, d_y->data);
-    float cpuTime = 0.0f;
-    COOMatrix_SpMV(h_cooMatrix, h_x, h_y, &cpuTime);
+    COOMatrix_SpMV(h_cooMatrix, h_x, h_y, NULL);
+    checkCudaErrors(cudaDeviceSynchronize());
+    cudaEventRecord(stop);
     Vector *h_ellY = Vector_from_CUDA(d_y);
     Vector_sum(h_y, h_ellY);
-    cudaEventRecord(stop);
     if (time) {
         cudaEventSynchronize(stop);
         cudaEventElapsedTime(time, start, stop);

@@ -77,6 +77,7 @@ u_int64_t COOMatrix_maxNumberOfElem(COOMatrix *matrix) {
 
 int COOMatrix_split(const COOMatrix *matrix, COOMatrix *first, COOMatrix *second, u_int64_t threshold) {
     if (!matrix || !first || !second) return -1;
+    // Count number of elements per row
     Histogram *rowsElem = Histogram_new(matrix->row_size + 1);
     first->row_size = matrix->row_size;
     first->col_size = matrix->col_size;
@@ -95,10 +96,14 @@ int COOMatrix_split(const COOMatrix *matrix, COOMatrix *first, COOMatrix *second
             second->num_non_zero_elements += numElem;
         }
     }
+    // if the split is not feasible, don't do it.
     if (first->num_non_zero_elements == 0 || second->num_non_zero_elements == 0) {
         Histogram_free(rowsElem);
         return 1;
     }
+    // create the cooMatrix, `first` has all the elements which row have less than `threshold` elements,
+    // `second` as all the remaining elements.
+
     first->row_index = malloc(first->num_non_zero_elements * sizeof(u_int64_t));
     first->col_index = malloc(first->num_non_zero_elements * sizeof(u_int64_t));
     first->data = malloc(first->num_non_zero_elements * sizeof(float));
@@ -117,6 +122,7 @@ int COOMatrix_split(const COOMatrix *matrix, COOMatrix *first, COOMatrix *second
     memset(second->col_index, 0,second->num_non_zero_elements * sizeof(u_int64_t) );
 
 
+    // do the split, copy the rows with less elementes than `threshold` in `first`, copy the remaining rows in `second`.
     u_int64_t fpos = 0, spos = 0;
     for (u_int64_t i = 0; i < matrix->num_non_zero_elements; i++) {
         u_int64_t numElem = Histogram_getElemAtIndex(rowsElem, matrix->row_index[i]);

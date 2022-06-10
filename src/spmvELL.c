@@ -15,7 +15,7 @@
 #define MAX_ITERATION 512
 #define ELL_THRESHOLD 256
 
-void outAsJSON(char *absolutePath, COOMatrix *matrix, u_int64_t nz, float time, int numIteration, int isFirst, int isLast, FILE *out) {
+void outAsJSON(char *absolutePath, COOMatrix *matrix, u_int64_t nz, int hybrid, double time, int numIteration, int isFirst, int isLast, FILE *out) {
     if (isFirst) {
         fprintf(out, "{ \"ELLResult\": [\n");
     }
@@ -24,9 +24,11 @@ void outAsJSON(char *absolutePath, COOMatrix *matrix, u_int64_t nz, float time, 
     fprintf(out, "\"MatrixInfo\": ");
     COOMatrix_infoOutAsJSON(matrix, out);
     fprintf(out, ",\n");
+    fprintf(out, "\"numIteration\": %d,\n", numIteration);
+    fprintf(out, "\"Hybrid\": \"%s\",\n", (hybrid) ? "True" : "False");
     fprintf(out, "\"time\": %f,\n", time);
-    fprintf(out, "\"meanTime\": %f\n", time / (float)numIteration);
-    fprintf(out, "\"FLOPS\": %f\n", compute_FLOPS(nz, time / 1000.0));
+    fprintf(out, "\"meanTime\": %f,\n", time / (double)numIteration);
+    fprintf(out, "\"FLOPS\": %f\n", compute_FLOPS(nz, (time / (double)numIteration) / 1000.0));
     if (!isLast) {
         fprintf(out, "},\n");
     } else {
@@ -94,7 +96,7 @@ int main(int argc, char *argv[]) {
         if (notSplit == -1) {
             return EXIT_FAILURE;
         }
-        float totTime = 0.0f;
+        double totTime = 0.0;
         if (notSplit) {
             ELLMatrix *h_ellMatrix = ELLMatrix_new_fromCOO(h_cooMatrix);
             ELLMatrix *d_ellMatrix = ELLMatrix_to_CUDA(h_ellMatrix);
@@ -106,6 +108,7 @@ int main(int argc, char *argv[]) {
                 ELLMatrix_SpMV_CUDA(cudaDev, d_ellMatrix, h_x, h_y, &time);
                 totTime += time;
             }
+
             ELLMatrix_free_CUDA(d_ellMatrix);
         } else {
             ELLMatrix *h_ellMatrix = ELLMatrix_new_fromCOO(h_low);
@@ -120,10 +123,13 @@ int main(int argc, char *argv[]) {
             }
             ELLMatrix_free_CUDA(d_ellMatrix);
         }
-        outAsJSON(absolutePath, h_cooMatrix,h_cooMatrix->num_non_zero_elements, totTime, MAX_ITERATION, fileProcessed == 1, fileProcessed == numDir, out);
-        COOMatrix_free(h_cooMatrix);
         COOMatrix_free(h_low);
         COOMatrix_free(h_high);
+
+        int hybrid = !notSplit;
+        outAsJSON(absolutePath, h_cooMatrix,h_cooMatrix->num_non_zero_elements, hybrid,  totTime, MAX_ITERATION, fileProcessed == 1, fileProcessed == numDir, out);
+
+        COOMatrix_free(h_cooMatrix);
         Vector_free_wpm(h_x);
         Vector_free_wpm(h_y);
     }
