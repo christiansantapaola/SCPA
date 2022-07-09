@@ -6,4 +6,5 @@ Makefile
 .cmake/
 build/
 .vscode
+.editorconfig
 
