@@ -76,6 +76,8 @@ add_executable(spmvTest
         src/spmv/SpMV_ELL.cu
         src/spmv/SpMVResult.c
         src/spmv/SpMV.c
+        src/spmv/SpMV_OMP.c
+        src/spmv/SpMV_ELLHYB.c
         src/util/BlockGridInfo.c
         src/util/util.c)
 
@@ -100,6 +102,8 @@ add_executable(spmvCSR
         src/spmv/SpMV_ELL.cu
         src/spmv/SpMVResult.c
         src/spmv/SpMV.c
+        src/spmv/SpMV_OMP.c
+        src/spmv/SpMV_ELLHYB.c
         src/util/BlockGridInfo.c
         src/util/util.c)
 
@@ -123,8 +127,44 @@ add_executable(spmvELL
         src/spmv/SpMV_ELL.cu
         src/spmv/SpMVResult.c
         src/spmv/SpMV.c
+        src/spmv/SpMV_OMP.c
+        src/spmv/SpMV_ELLHYB.c
         src/util/BlockGridInfo.c
         src/util/util.c)
 
 target_link_libraries(spmvELL ${CUDA_LIBRARIES} OpenMP::OpenMP_C)
 set_target_properties(spmvELL PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
+
+add_executable(spmvCSR_OMP
+        src/spmvCSR_OpenMP.c
+        src/sparsematrix/ELLMatrix.c
+        src/sparsematrix/CSRMatrix.c
+        src/sparsematrix/COOMatrix.c
+        src/sparsematrix/Vector.c
+        src/sparsematrix/MTXParser.c
+        lib/mmio/src/mmio.c
+        src/util/Histogram.c
+        src/spmv/SpMVResult.c
+        src/spmv/SpMV.c
+        src/spmv/SpMV_OMP.c
+        src/util/util.c)
+
+target_link_libraries(spmvCSR_OMP OpenMP::OpenMP_C)
+
+add_executable(spmvELL_OMP
+        src/spmvELL_OpenMP.c
+        src/sparsematrix/ELLMatrix.c
+        src/sparsematrix/CSRMatrix.c
+        src/sparsematrix/COOMatrix.c
+        src/sparsematrix/Vector.c
+        src/sparsematrix/MTXParser.c
+        lib/mmio/src/mmio.c
+        src/util/Histogram.c
+        src/spmv/SpMVResult.c
+        src/spmv/SpMV.c
+        src/spmv/SpMV_OMP.c
+        src/util/BlockGridInfo.c
+        src/util/util.c)
+
+target_link_libraries(spmvELL_OMP OpenMP::OpenMP_C)
