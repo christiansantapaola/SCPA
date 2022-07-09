@@ -32,6 +32,12 @@ int Vector_equals(const Vector *v1, const Vector *v2) {
     return 1;
 }
 
+int Vector_copy(Vector *dst, const Vector *src) {
+    if (!dst || !src) return 1;
+    dst->size = src->size;
+    memcpy(dst->data, src->data, src->size * sizeof(*dst->data));
+    return 0;
+}
 
 void Vector_set(Vector *vector, float value) {
     for (u_int64_t i = 0; i < vector->size; i++) {

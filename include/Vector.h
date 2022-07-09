@@ -28,6 +28,7 @@ void Vector_set(Vector *vector, float value);
 void Vector_outAsJSON(Vector *vector, FILE *out);
 int Vector_equals(const Vector *v1, const Vector *v2);
 int Vector_sum(Vector *v1, Vector *v2);
+int Vector_copy(Vector *dst, const Vector *src);
 
 #endif
 //SPARSEMATRIX_VECTOR_H

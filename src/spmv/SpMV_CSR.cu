@@ -12,11 +12,11 @@ extern "C" {
 
 __global__ void
 SpMV_CSR_kernel(u_int64_t num_rows, const float *data, const u_int64_t *col_index, const u_int64_t *row_ptr, const float *x, float *y) {
-    u_int64_t row = blockIdx.x * blockDim.x + threadIdx.x;
+    const u_int64_t row = blockIdx.x * blockDim.x + threadIdx.x;
     if (row < num_rows) {
         float dot = 0.0f;
-        u_int64_t row_start = row_ptr[row];
-        u_int64_t row_end = row_ptr[row + 1];
+        const u_int64_t row_start = row_ptr[row];
+        const u_int64_t row_end = row_ptr[row + 1];
         for (u_int64_t elem = row_start; elem < row_end; elem++) {
             dot += data[elem] * x[col_index[elem]];
         }
@@ -39,8 +39,8 @@ extern "C" int CSRMatrix_SpMV_CUDA(int cudaDevice, const CSRMatrix *d_matrix, co
     CudaUtils_getBestCudaParameters(d_matrix->row_size, &prop, &blockGridInfo);
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
-    d_x = Vector_to_CUDA(h_x);
-    d_y = Vector_to_CUDA(h_y);
+    d_x = Vector_to_CUDA_async(h_x);
+    d_y = Vector_to_CUDA_async(h_y);
     cudaEventRecord(start);
     SpMV_CSR_kernel<<<blockGridInfo.gridSize, blockGridInfo.blockSize>>>(d_matrix->row_size,
                                                                          d_matrix->data,
@@ -48,8 +48,8 @@ extern "C" int CSRMatrix_SpMV_CUDA(int cudaDevice, const CSRMatrix *d_matrix, co
                                                                          d_matrix->row_pointer,
                                                                          d_x->data,
                                                                          d_y->data);
-    Vector_copy_from_CUDA(h_y, d_y);
     cudaEventRecord(stop);
+    Vector_copy_from_CUDA(h_y, d_y);
     if (time) {
         cudaEventSynchronize(stop);
         cudaEventElapsedTime(time, start, stop);
