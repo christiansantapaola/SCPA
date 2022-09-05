@@ -1,6 +1,47 @@
 #include "util.h"
 #include "ELLMatrix.h"
 
+int forEachFile(const char *path, int (*op)(char *, struct dirent *, void *), void *args ) {
+    DIR *dir = opendir(path);
+    if (!dir) {
+        return -1;
+    }
+    char old_dir[4096] = {0};
+    if (getcwd(old_dir, 4096) == NULL) {
+        return -1;
+    }
+    chdir(path);
+    int fileProcessed = 0;
+    struct dirent* entry = NULL;
+    while ((entry = readdir(dir)) != NULL) {
+        // if file is not a regular file then skip.
+        if (entry->d_type != DT_REG) {
+            continue;
+        }
+        // update status bar
+        // print_status_bar(fileProcessed, numDir, entry->d_name);
+        fileProcessed++;
+        // get the fullpath of the current file.
+        char *absolutePath = realpath(entry->d_name, NULL);
+        if (!absolutePath) {
+            perror(entry->d_name);
+            closedir(dir);
+            chdir(old_dir);
+            exit(EXIT_FAILURE);
+        }
+        int ret = op(absolutePath, entry, args);
+        if (ret < 0) {
+            closedir(dir);
+            chdir(old_dir);
+            return ret;
+        }
+        free(absolutePath);
+    }
+    closedir(dir);
+    chdir(old_dir);
+    return 0;
+}
+
 void print_status_bar(int used, int total,char *file) {
     fprintf(stderr, "\33[2K\r[");
     for (int i = 0; i < used; i++) {
@@ -66,4 +107,24 @@ double compute_var(float *obs, unsigned int size, double mean) {
         square_sum +=  centered_obs * centered_obs;
     }
     return square_sum / (double) (size - 1);
+}
+
+void transposef(float *dest, const float *src, u_int64_t num_row, u_int64_t num_col) {
+    for (size_t row = 0; row < num_row; row++) {
+        for (size_t col = 0; col < num_col; col++) {
+            size_t srcIdx = row * num_col + col;
+            size_t dstIdx = col * num_row + row;
+            dest[dstIdx] = src[srcIdx];
+        }
+    }
+}
+
+void transpose_u_int64_t(u_int64_t *dest, const u_int64_t *src, u_int64_t num_row, u_int64_t num_col) {
+    for (size_t row = 0; row < num_row; row++) {
+        for (size_t col = 0; col < num_col; col++) {
+            size_t srcIdx = row * num_col + col;
+            size_t dstIdx = col * num_row + row;
+            dest[dstIdx] = src[srcIdx];
+        }
+    }
 }

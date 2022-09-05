@@ -1,30 +1,6 @@
 #include "ELLMatrix.h"
-#include <omp.h>
 
-void transposef(float *restrict dest, const float *restrict src, u_int64_t num_row, u_int64_t num_col) {
-#pragma omp parallel for schedule(auto) shared(num_row, num_col, dest, src) default(none)
-    for (size_t row = 0; row < num_row; row++) {
-        for (size_t col = 0; col < num_col; col++) {
-            size_t srcIdx = row * num_col + col;
-            size_t dstIdx = col * num_row + row;
-            dest[dstIdx] = src[srcIdx];
-        }
-    }
-}
-
-void transpose_u_int64_t(u_int64_t *restrict dest, const u_int64_t *restrict src, u_int64_t num_row, u_int64_t num_col) {
-#pragma omp parallel for schedule(auto) shared(num_row, num_col, dest, src) default(none)
-    for (size_t row = 0; row < num_row; row++) {
-        for (size_t col = 0; col < num_col; col++) {
-            size_t srcIdx = row * num_col + col;
-            size_t dstIdx = col * num_row + row;
-            dest[dstIdx] = src[srcIdx];
-        }
-    }
-}
-
-
-ELLMatrix *ELLMatrix_new(CSRMatrix *csrMatrix) {
+ELLMatrix *ELLMatrix_new(const CSRMatrix *csrMatrix) {
     if (!csrMatrix) return NULL;
     ELLMatrix *ellMatrix = (ELLMatrix *) malloc(sizeof(ELLMatrix));
     ellMatrix->row_size = csrMatrix->row_size;
@@ -63,7 +39,7 @@ ELLMatrix *ELLMatrix_new(CSRMatrix *csrMatrix) {
     return ellMatrix;
 }
 
-ELLMatrix *ELLMatrix_new_fromCOO(COOMatrix *cooMatrix) {
+ELLMatrix *ELLMatrix_new_fromCOO(const COOMatrix *cooMatrix) {
     if (!cooMatrix) return NULL;
     ELLMatrix *ellMatrix = (ELLMatrix *) malloc(sizeof(ELLMatrix));
     ellMatrix->row_size = cooMatrix->row_size;
@@ -104,19 +80,23 @@ void ELLMatrix_free(ELLMatrix *ellMatrix) {
     free(ellMatrix);
 }
 
-void ELLMatrix_transpose(ELLMatrix *ellMatrix) {
-    float *temp_data = (float *) malloc(ellMatrix->data_size * sizeof(float));
-    u_int64_t *temp_col_index = (u_int64_t *) malloc(ellMatrix->data_size * sizeof(u_int64_t));
-    u_int64_t temp;
-    memcpy(temp_data, ellMatrix->data, ellMatrix->data_size * sizeof(float));
-    memcpy(temp_col_index, ellMatrix->col_index, ellMatrix->data_size * sizeof(u_int64_t));
-    transposef(ellMatrix->data, temp_data, ellMatrix->data_row_size, ellMatrix->data_col_size);
-    transpose_u_int64_t(ellMatrix->col_index, temp_col_index, ellMatrix->data_row_size, ellMatrix->data_col_size);
-    temp = ellMatrix->data_row_size;
-    ellMatrix->data_row_size = ellMatrix->data_col_size;
-    ellMatrix->data_col_size = temp;
-    free(temp_data);
-    free(temp_col_index);
+void ELLMatrix_transpose(const ELLMatrix *ellMatrix, ELLMatrix *transposed) {
+    if (!transposed) {
+        return;
+    }
+    transposed->col_size = ellMatrix->row_size;
+    transposed->row_size = ellMatrix->col_size;
+    transposed->data_col_size = ellMatrix->data_row_size;
+    transposed->data_row_size = ellMatrix->data_col_size;
+
+    transposed->num_elem = ellMatrix->num_elem;
+    transposed->num_non_zero_elements = ellMatrix->num_non_zero_elements;
+    transposed->data = (float *) malloc(ellMatrix->data_size * sizeof(float));
+    transposed->col_index = (u_int64_t *) malloc(ellMatrix->data_size * sizeof(u_int64_t));
+    //memcpy(transposed->data, ellMatrix->data, ellMatrix->data_size * sizeof(float));
+    //memcpy(transposed->col_index ellMatrix->col_index, ellMatrix->data_size * sizeof(u_int64_t));
+    transposef(ellMatrix->data, transposed->data, ellMatrix->data_row_size, ellMatrix->data_col_size);
+    transpose_u_int64_t(ellMatrix->col_index, transposed->col_index, ellMatrix->data_row_size, ellMatrix->data_col_size);
 }
 
 void ELLMatrix_outAsJSON(ELLMatrix *matrix, FILE *out) {

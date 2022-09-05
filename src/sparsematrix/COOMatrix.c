@@ -17,7 +17,7 @@ void COOMatrix_free(COOMatrix *matrix) {
     free(matrix);
 }
 
-void COOMatrix_outAsJSON(COOMatrix *matrix, FILE *out) {
+void COOMatrix_outAsJSON(const COOMatrix *matrix, FILE *out) {
     if (!out) out=stdout;
     if (!matrix) {
         fprintf(out, "{}");
@@ -45,7 +45,7 @@ void COOMatrix_outAsJSON(COOMatrix *matrix, FILE *out) {
     fprintf(out, "%s", "}");
 }
 
-void COOMatrix_infoAsJSON(COOMatrix *matrix, FILE *out) {
+void COOMatrix_infoAsJSON(const COOMatrix *matrix, FILE *out) {
     if (!out) out=stdout;
     if (!matrix) {
         fprintf(out, "{}");
@@ -58,7 +58,7 @@ void COOMatrix_infoAsJSON(COOMatrix *matrix, FILE *out) {
     fprintf(out, "%s", "}");
 }
 
-u_int64_t COOMatrix_maxNumberOfElem(COOMatrix *matrix) {
+u_int64_t COOMatrix_maxNumberOfElem(const COOMatrix *matrix) {
     if (!matrix) return 0;
     Histogram *hist = Histogram_new(matrix->row_size);
     for (u_int64_t i = 0; i < matrix->num_non_zero_elements; i++) {
@@ -142,7 +142,7 @@ int COOMatrix_split(const COOMatrix *matrix, COOMatrix *first, COOMatrix *second
     return 0;
 }
 
-void COOMatrix_infoOutAsJSON(COOMatrix *matrix, FILE *out) {
+void COOMatrix_infoOutAsJSON(const COOMatrix *matrix, FILE *out) {
     if (!out) out=stdout;
     if (!matrix) {
         fprintf(out, "{}");

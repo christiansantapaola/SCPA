@@ -13,17 +13,24 @@
 #define SPMV_FAIL -1
 #define SPMV_SUCCESS 0
 
-int COOMatrix_SpMV(const COOMatrix *matrix, const Vector *x, Vector *y, float *time);
+typedef struct Benchmark {
+    double gpuTime;
+    double cpuTime;
+} Benchmark;
 
-int CSRMatrix_SpMV(const CSRMatrix *matrix, const Vector *x, Vector *y, float *time, int parallel);
+int COOMatrix_SpMV(const COOMatrix *matrix, const Vector *x, Vector *y, Benchmark *Benchmark);
+int CSRMatrix_SpMV(const COOMatrix *matrix, const Vector *x, Vector *y, u_int64_t N, Benchmark *benchmark);
+int ELLMatrix_SpMV(const COOMatrix *matrix, const Vector *x, Vector *y, u_int64_t N, Benchmark *benchmark);
 
-int ELLMatrix_SpMV(const ELLMatrix *matrix, const Vector *x, Vector *y, float *time, int parallel);
+int CSRMatrix_SpMV_cpu(const COOMatrix *matrix, const Vector *x, Vector *y, u_int64_t N, Benchmark *benchmark);
+int ELLMatrix_SpMV_cpu(const COOMatrix *matrix, const Vector *x, Vector *y, u_int64_t N, Benchmark *benchmark);
 
-int ELLCOOMatrix_SpMV(COOMatrix *h_cooMatrix, Vector *h_x, Vector *h_y, u_int64_t threshold, u_int64_t max_iteration);
 
-
+int CSRMatrix_SpMV_OMP(const CSRMatrix *matrix, const Vector *x, Vector *y, Benchmark *Benchmark);
+int ELLMatrix_SpMV_OMP(const ELLMatrix *matrix, const Vector *x, Vector *y, Benchmark *Benchmark);
 int CSRMatrix_SpMV_CUDA(int cudaDevice, const CSRMatrix *d_matrix, const Vector *h_x, Vector *h_y, float *time);
 int ELLMatrix_SpMV_CUDA(int cudaDevice, const ELLMatrix *d_matrix, const Vector *h_x, Vector *h_y, float *time);
 int ELLCOOMatrix_SpMV_CUDA(int cudaDevice, const ELLMatrix *d_ellMatrix, const COOMatrix *h_cooMatrix, const Vector *h_x, Vector *h_y, float *time);
+
 
 #endif //SPARSEMATRIX_SPMV_H

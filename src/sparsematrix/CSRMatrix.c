@@ -1,6 +1,6 @@
 #include "CSRMatrix.h"
 
-CSRMatrix *CSRMatrix_new(COOMatrix *cooMatrix) {
+CSRMatrix *CSRMatrix_new(const COOMatrix *cooMatrix) {
     if (!cooMatrix) return NULL;
     CSRMatrix *csrMatrix = NULL;
     csrMatrix = (CSRMatrix *) malloc(sizeof(CSRMatrix));

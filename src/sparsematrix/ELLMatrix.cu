@@ -1,12 +1,13 @@
 extern "C" {
 #include "CSRMatrix.h"
 #include "ELLMatrix.h"
+#include "util.h"
 }
 
 #include <cuda.h>
 #include "cudaUtils.cuh"
 
-extern "C" ELLMatrix *ELLMatrix_new_fromCOO_wpm(COOMatrix *cooMatrix) {
+extern "C" ELLMatrix *ELLMatrix_new_fromCOO_wpm(const COOMatrix *cooMatrix) {
     if (!cooMatrix) return NULL;
     ELLMatrix *ellMatrix = (ELLMatrix *) malloc(sizeof(ELLMatrix));
     ellMatrix->row_size = cooMatrix->row_size;
@@ -39,7 +40,7 @@ extern "C" ELLMatrix *ELLMatrix_new_fromCOO_wpm(COOMatrix *cooMatrix) {
     return ellMatrix;
 }
 
-extern "C" ELLMatrix *ELLMatrix_new_fromCSR_wpm(CSRMatrix *csrMatrix) {
+extern "C" ELLMatrix *ELLMatrix_new_fromCSR_wpm(const CSRMatrix *csrMatrix) {
     if (!csrMatrix) return NULL;
     ELLMatrix *ellMatrix = (ELLMatrix *) malloc(sizeof(ELLMatrix));
     ellMatrix->row_size = csrMatrix->row_size;
@@ -81,25 +82,46 @@ extern "C" void ELLMatrix_free_wpm(ELLMatrix *ellMatrix) {
     free(ellMatrix);
 }
 
-extern "C" ELLMatrix *ELLMatrix_to_CUDA(ELLMatrix *h_matrix) {
+extern "C" void ELLMatrix_transpose_wpm(const ELLMatrix *ellMatrix, ELLMatrix *transposed) {
+    if (!transposed) {
+        return;
+    }
+    transposed->col_size = ellMatrix->row_size;
+    transposed->row_size = ellMatrix->col_size;
+    transposed->data_col_size = ellMatrix->data_row_size;
+    transposed->data_row_size = ellMatrix->data_col_size;
+    transposed->data_size = ellMatrix->data_size;
+    transposed->num_elem = ellMatrix->num_elem;
+    transposed->num_non_zero_elements = ellMatrix->num_non_zero_elements;
+    checkCudaErrors(cudaHostAlloc(&transposed->data, ellMatrix->data_size * sizeof(float), cudaHostAllocDefault));
+    checkCudaErrors(cudaHostAlloc(&transposed->col_index, ellMatrix->data_size * sizeof(u_int64_t), cudaHostAllocDefault));
+    //memcpy(transposed->data, ellMatrix->data, ellMatrix->data_size * sizeof(float));
+    //memcpy(transposed->col_index ellMatrix->col_index, ellMatrix->data_size * sizeof(u_int64_t));
+    transposef(ellMatrix->data, transposed->data, ellMatrix->data_row_size, ellMatrix->data_col_size);
+    transpose_u_int64_t(ellMatrix->col_index, transposed->col_index, ellMatrix->data_row_size, ellMatrix->data_col_size);
+}
+
+
+extern "C" ELLMatrix *ELLMatrix_to_CUDA(const ELLMatrix *h_matrix) {
     if (!h_matrix) {
         return NULL;
     }
+    ELLMatrix *h_transposed_matrix = (ELLMatrix *)malloc(sizeof(ELLMatrix));
+    ELLMatrix_transpose_wpm(h_matrix, h_transposed_matrix);
     ELLMatrix *d_matrix = (ELLMatrix *)malloc(sizeof(ELLMatrix));
-    d_matrix->row_size = h_matrix->row_size;
-    d_matrix->col_size = h_matrix->col_size;
-    d_matrix->num_non_zero_elements = h_matrix->num_non_zero_elements;
-    d_matrix->num_elem = h_matrix->num_elem;
-    d_matrix->data_size = h_matrix->data_size;
-    d_matrix->data_row_size = h_matrix->data_row_size;
-    d_matrix->data_col_size = d_matrix->data_col_size;
-    ELLMatrix_transpose(h_matrix);
+    d_matrix->col_size = h_transposed_matrix->row_size;
+    d_matrix->row_size = h_transposed_matrix->col_size;
+    d_matrix->data_col_size = h_transposed_matrix->data_row_size;
+    d_matrix->data_row_size = h_transposed_matrix->data_col_size;
+    d_matrix->data_size = h_transposed_matrix->data_size;
+    d_matrix->num_elem = h_transposed_matrix->num_elem;
+    d_matrix->num_non_zero_elements = h_transposed_matrix->num_non_zero_elements;
     checkCudaErrors(cudaMalloc(&d_matrix->data, d_matrix->data_size * sizeof(float)));
     checkCudaErrors(cudaMalloc(&d_matrix->col_index, d_matrix->data_size * sizeof(u_int64_t)));
-    checkCudaErrors(cudaMemcpyAsync(d_matrix->data, h_matrix->data, d_matrix->data_size * sizeof(float), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpyAsync(d_matrix->col_index, h_matrix->col_index, d_matrix->data_size * sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpyAsync(d_matrix->data, h_transposed_matrix->data, h_transposed_matrix->data_size * sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpyAsync(d_matrix->col_index, h_transposed_matrix->col_index, h_transposed_matrix->data_size * sizeof(float), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaDeviceSynchronize());
-    ELLMatrix_transpose(h_matrix);
+    ELLMatrix_free_wpm(h_transposed_matrix);
     return d_matrix;
 }
 

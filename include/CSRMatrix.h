@@ -16,10 +16,10 @@ typedef struct CSRMatrix {
     u_int64_t col_size;
 } CSRMatrix;
 
-CSRMatrix *CSRMatrix_new(COOMatrix *matrix);
+CSRMatrix *CSRMatrix_new(const COOMatrix *matrix);
 void CSRMatrix_free(CSRMatrix *matrix);
-CSRMatrix *CSRMatrix_new_wpm(COOMatrix *cooMatrix);
-CSRMatrix *CSRMatrix_to_CUDA(CSRMatrix *h_matrix);
+CSRMatrix *CSRMatrix_new_wpm(const COOMatrix *cooMatrix);
+CSRMatrix *CSRMatrix_to_CUDA(const CSRMatrix *h_matrix);
 void CSRMatrix_free_CUDA(CSRMatrix *d_csrMatrix);
 void CSRMatrix_free_wpm(CSRMatrix *csrMatrix);
 void CSRMatrix_outAsJSON(CSRMatrix *matrix, FILE *out);

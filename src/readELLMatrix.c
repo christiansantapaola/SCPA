@@ -11,6 +11,7 @@
 #include "COOMatrix.h"
 #include "CSRMatrix.h"
 #include "ELLMatrix.h"
+#include "util.h"
 
 #define PROGRAM_NAME "readELL"
 
@@ -19,15 +20,9 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "USAGE: %s file.mtx\n", PROGRAM_NAME);
         return EXIT_FAILURE;
     }
-    MTXParser *mtxParser = MTXParser_new(argv[1]);
-    if (!mtxParser) {
-        perror("MTXParser_new()");
-        exit(EXIT_FAILURE);
-    }
-    COOMatrix *cooMatrix = MTXParser_parse(mtxParser);
+    COOMatrix *cooMatrix = read_matrix_from_file(argv[1]);
     if (!cooMatrix) {
-        perror("MTXParser_parse():");
-        MTXParser_free(mtxParser);
+        perror("read_matrix_from_file");
         return EXIT_FAILURE;
     }
     ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(cooMatrix);
@@ -35,7 +30,6 @@ int main(int argc, char *argv[]) {
     putc('\n', stdout);
     COOMatrix_free(cooMatrix);
     ELLMatrix_free(ellMatrix);
-
     return EXIT_SUCCESS;
 }
 

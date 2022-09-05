@@ -6,7 +6,7 @@ extern "C" {
 #include <cuda_runtime.h>
 #include "cudaUtils.cuh"
 
-extern "C" CSRMatrix *CSRMatrix_new_wpm(COOMatrix *cooMatrix) {
+extern "C" CSRMatrix *CSRMatrix_new_wpm(const COOMatrix *cooMatrix) {
     if (!cooMatrix) return NULL;
     CSRMatrix *csrMatrix = NULL;
     csrMatrix = (CSRMatrix *) malloc(sizeof(CSRMatrix));
@@ -55,7 +55,7 @@ extern "C" void CSRMatrix_free_wpm(CSRMatrix *csrMatrix) {
     free(csrMatrix);
 }
 
-extern "C" CSRMatrix *CSRMatrix_to_CUDA(CSRMatrix *h_matrix) {
+extern "C" CSRMatrix *CSRMatrix_to_CUDA(const CSRMatrix *h_matrix) {
     if (!h_matrix) {
         return NULL;
     }
