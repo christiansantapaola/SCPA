@@ -138,19 +138,19 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
     
-    printf("%s, %s, %s, %s, %s\n", "Matrix", "Format", "Device", "Time", "GFLOPS");
+    //printf("%s, %s, %s, %s, %s\n", "Matrix", "Format", "Device", "Time", "GFLOPS");
     ret = forEachFile(matrixDirPath, do_ELLMatrix_prod, NULL);
     if (ret < 0) {
         return EXIT_FAILURE;
     }
 
-    printf("%s, %s, %s, %s, %s\n", "Matrix", "Format", "Device", "Time", "GFLOPS");
+    //printf("%s, %s, %s, %s, %s\n", "Matrix", "Format", "Device", "Time", "GFLOPS");
     ret = forEachFile(matrixDirPath, do_CSRMatrix_OMP_prod, NULL);
     if (ret < 0) {
         return EXIT_FAILURE;
     }
     
-    printf("%s, %s, %s, %s, %s\n", "Matrix", "Format", "Device", "Time", "GFLOPS");
+    //  printf("%s, %s, %s, %s, %s\n", "Matrix", "Format", "Device", "Time", "GFLOPS");
     ret = forEachFile(matrixDirPath, do_ELLMatrix_OMP_prod, NULL);
     if (ret < 0) {
         return EXIT_FAILURE;

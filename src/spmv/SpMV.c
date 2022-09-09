@@ -120,6 +120,10 @@ int ELLMatrix_SpMV_cpu(const COOMatrix *matrix, const Vector *x, Vector *y, u_in
         benchmark->cpuTime = 0.0;
         benchmark->gpuTime = 0.0;
     }
+    COOMatrix *first = COOMatrix_new();
+    COOMatrix *second = COOMatrix_new();
+    int notSplit = COOMatrix_split(matrix, first, second, 64);
+    if (notSplit) {
     ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(matrix);
     Benchmark tmp;
     for (u_int64_t i = 0; i < N; i++) {
@@ -130,6 +134,21 @@ int ELLMatrix_SpMV_cpu(const COOMatrix *matrix, const Vector *x, Vector *y, u_in
             }
     }
     ELLMatrix_free(ellMatrix);
+    } else {
+        ELLMatrix *ellMatrix = ELLMatrix_new_fromCOO(first);
+        Benchmark ellTmp, cooTmp;
+        for (u_int64_t i = 0; i < N; i++) {
+                ELLMatrix_SpMV_OMP(ellMatrix, x, y, &ellTmp);
+                COOMatrix_SpMV(second, x, y, &cooTmp);
+                if (benchmark) {
+                    benchmark->gpuTime += cooTmp.gpuTime + ellTmp.gpuTime;
+                    benchmark->cpuTime += cooTmp.cpuTime + ellTmp.cpuTime;
+                }
+        }
+        ELLMatrix_free(ellMatrix);
+    }
+    COOMatrix_free(first);
+    COOMatrix_free(second);
     return SPMV_SUCCESS;
 
 }
