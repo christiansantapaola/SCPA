@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
     char *matrixDirPath = argv[1];
-    printf("%s, %s, %s, %s, %s\n", "Matrix", "Format", "Device", "Time", "GFLOPS");
+    printf("%s, %s, %s, %s, %s\n", "Matrix", "Format", "Device", "Time", "FLOPS");
     ret = forEachFile(matrixDirPath, do_CSRMatrix_prod, NULL);
     if (ret < 0) {
         return EXIT_FAILURE;

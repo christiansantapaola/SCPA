@@ -45,6 +45,7 @@ int ELLMatrix_SpMV_CUDA(int cudaDevice, const ELLMatrix *d_matrix, const Vector 
     if (time) {
         cudaEventSynchronize(stop);
         cudaEventElapsedTime(time, start, stop);
+        *time = *time / 1000.0; // convert ms -> s
     }
     Vector_free_CUDA(d_y);
     Vector_free_CUDA(d_x);

@@ -53,6 +53,7 @@ extern "C" int CSRMatrix_SpMV_CUDA(int cudaDevice, const CSRMatrix *d_matrix, co
     if (time) {
         cudaEventSynchronize(stop);
         cudaEventElapsedTime(time, start, stop);
+        *time = *time / 1000.0; // convert ms -> s
     }
     Vector_free_CUDA(d_y);
     Vector_free_CUDA(d_x);

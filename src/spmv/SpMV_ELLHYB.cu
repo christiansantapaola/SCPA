@@ -37,6 +37,7 @@ extern "C" int ELLCOOMatrix_SpMV_CUDA(int cudaDevice, const ELLMatrix *d_ellMatr
     if (time) {
         cudaEventSynchronize(stop);
         cudaEventElapsedTime(time, start, stop);
+        *time = *time / 1000.0;
     }
     Vector_free(h_ellY);
     Vector_free_CUDA(d_y);

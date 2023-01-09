@@ -16,7 +16,7 @@ int COOMatrix_SpMV(const COOMatrix *matrix, const Vector *x, Vector *y, Benchmar
     end = clock();
     if (benchmark) {
         benchmark->gpuTime = 0.0;
-        benchmark->cpuTime = ((double) (end - start)) / (double) CLOCKS_PER_SEC * 1000.0;
+        benchmark->cpuTime = ((double) (end - start)) / (double) CLOCKS_PER_SEC;
     }
     return SPMV_SUCCESS;
 }

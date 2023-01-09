@@ -25,7 +25,7 @@ int CSRMatrix_SpMV_OMP(const CSRMatrix* matrix, const Vector* x, Vector* y, Benc
     }
     double end = omp_get_wtime();
     if (benchmark) {
-        benchmark->cpuTime = (end - start) * 1000.0;
+        benchmark->cpuTime = (end - start);
     }
     return SPMV_SUCCESS;
 }
@@ -56,7 +56,7 @@ int ELLMatrix_SpMV_OMP(const ELLMatrix* matrix, const Vector* x, Vector* y, Benc
     }
     double end = omp_get_wtime();
     if (benchmark) {
-        benchmark->cpuTime = (end - start) * 1000.0;
+        benchmark->cpuTime = (end - start);
     }
 
     return SPMV_SUCCESS;
