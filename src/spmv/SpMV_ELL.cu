@@ -26,6 +26,7 @@ int ELLMatrix_SpMV_CUDA(int cudaDevice, const ELLMatrix *d_matrix, const Vector 
     Vector *d_x, *d_y;
     cudaDeviceProp prop;
     BlockGridInfo blockGridInfo;
+    int minGridSize;
     if (!d_matrix || !h_x || !h_y) {
         return SPMV_FAIL;
     }
@@ -33,7 +34,11 @@ int ELLMatrix_SpMV_CUDA(int cudaDevice, const ELLMatrix *d_matrix, const Vector 
         return SPMV_FAIL;
     }
     CudaUtils_getDeviceProp(cudaDevice, &prop);
-    CudaUtils_getBestCudaParameters(d_matrix->row_size, &prop, &blockGridInfo);
+    //CudaUtils_getBestCudaParameters(d_matrix->row_size, &prop, &blockGridInfo);
+    cudaOccupancyMaxPotentialBlockSize( &minGridSize, (int*)&blockGridInfo.blockSize, 
+                                      SpMV_ELL_kernel, 0, 0); 
+    // Round up according to array size 
+    blockGridInfo.gridSize = (d_matrix->row_size + blockGridInfo.blockSize - 1) / blockGridInfo.blockSize; 
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     d_x = Vector_to_CUDA_async(h_x);
