@@ -31,7 +31,7 @@ int do_CSRMatrix_prod(char *path, struct dirent *entry, void *args) {
     }
     Benchmark benchmark;
     CSRMatrix_SpMV(cooMatrix, x, y, 512, &benchmark);
-    printf("%s,%s,%s,%f,%f\n", path, "CSR", "CUDA", benchmark.gpuTime / 512.0, compute_FLOPS(cooMatrix->num_non_zero_elements, benchmark.gpuTime / 512) / 1000000000);
+    printf("%s,%s,%s,%ld,%ld,%ld,%f,%f\n", path, "CSR", "CUDA", cooMatrix->row_size, cooMatrix->col_size, cooMatrix->num_non_zero_elements, benchmark.gpuTime / 512.0, compute_FLOPS(cooMatrix->num_non_zero_elements, benchmark.gpuTime / 512) / 1000000000);
     Vector_free(x);
     Vector_free(y);
     COOMatrix_free(cooMatrix);
@@ -59,7 +59,7 @@ int do_ELLMatrix_prod(char *path, struct dirent *entry, void *args) {
     }
     Benchmark benchmark;
     ELLMatrix_SpMV(cooMatrix, x, y, 512, &benchmark);
-    printf("%s,%s,%s,%f,%f\n", path, "ELL", "CUDA", benchmark.gpuTime / 512.0, compute_FLOPS(cooMatrix->num_non_zero_elements, benchmark.gpuTime / 512) / 1000000000);
+    printf("%s,%s,%s,%ld,%ld,%ld,%f,%f\n", path, "ELL", "CUDA", cooMatrix->row_size, cooMatrix->col_size, cooMatrix->num_non_zero_elements, benchmark.gpuTime / 512.0, compute_FLOPS(cooMatrix->num_non_zero_elements, benchmark.gpuTime / 512) / 1000000000);
     Vector_free(x);
     Vector_free(y);
     COOMatrix_free(cooMatrix);
@@ -88,7 +88,7 @@ int do_CSRMatrix_OMP_prod(char *path, struct dirent *entry, void *args) {
     }
     Benchmark benchmark;
     CSRMatrix_SpMV_cpu(cooMatrix, x, y, num_op, &benchmark);
-    printf("%s,%s,%s,%f,%f\n", path, "CSR", "OMP", benchmark.cpuTime / (double) num_op, compute_FLOPS(cooMatrix->num_non_zero_elements, benchmark.cpuTime / num_op) / 1000000000);
+    printf("%s,%s,%s,%ld,%ld,%ld,%f,%f\n", path, "CSR", "OMP", cooMatrix->row_size, cooMatrix->col_size, cooMatrix->num_non_zero_elements, benchmark.cpuTime / (double) num_op, compute_FLOPS(cooMatrix->num_non_zero_elements, benchmark.cpuTime / num_op) / 1000000000);
     Vector_free(x);
     Vector_free(y);
     COOMatrix_free(cooMatrix);
@@ -118,7 +118,7 @@ int do_ELLMatrix_OMP_prod(char *path, struct dirent *entry, void *args) {
     }
     Benchmark benchmark;
     ELLMatrix_SpMV_cpu(cooMatrix, x, y, num_op, &benchmark);
-    printf("%s,%s,%s,%f,%f\n", path, "ELL", "OMP", benchmark.cpuTime / (double) num_op, compute_FLOPS(cooMatrix->num_non_zero_elements, benchmark.cpuTime / num_op) / 1000000000);
+    printf("%s,%s,%s,%ld,%ld,%ld,%f,%f\n", path, "ELL", "OMP", cooMatrix->row_size, cooMatrix->col_size, cooMatrix->num_non_zero_elements, benchmark.cpuTime / (double) num_op, compute_FLOPS(cooMatrix->num_non_zero_elements, benchmark.cpuTime / num_op) / 1000000000);
     Vector_free(x);
     Vector_free(y);
     COOMatrix_free(cooMatrix);
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
     char *matrixDirPath = argv[1];
-    printf("%s,%s,%s,%s,%s\n", "Matrix", "Format", "Device", "Time", "FLOPS");
+    printf("%s,%s,%s,%s,%s,%s,%s,%s\n", "Matrix", "Format", "Device", "Rows", "Cols", "NonNull","Time", "FLOPS");
     ret = forEachFile(matrixDirPath, do_CSRMatrix_prod, NULL);
     if (ret < 0) {
         return EXIT_FAILURE;
