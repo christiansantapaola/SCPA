@@ -5,5 +5,5 @@ Il progetto è un progetto cmake per compilarlo ed eseguirlo si eseguoano i segu
 ``` bash
 $ cmake .
 $ make
-./bin/spmv /path/to/folder/containing/mtx/
+$ ./bin/spmv /path/to/folder/containing/mtx/
 ```
